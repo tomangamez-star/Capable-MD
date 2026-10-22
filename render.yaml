@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: montai-sentinel
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /healthz
+    disk:
+      name: sentinel-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: DATA_DIR
+        value: /var/data
+      - key: SEND_MODE
+        value: test
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: TEST_EMAIL
+        sync: false
