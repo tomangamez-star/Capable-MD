@@ -77,46 +77,55 @@ class FlowTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('TEST', self.messages[-2])
 
 class MailTests(unittest.IsolatedAsyncioTestCase):
-    async def test_test_routing_duplicate_taps_and_uncertain_outcome(self):
+    async def test_gmail_routing_mime_and_duplicate_protection(self):
+        from email import policy
+        from email.parser import BytesParser
+        import base64
         class Response:
             status = 200
+            def __init__(self, result): self.result = result
             async def __aenter__(self): return self
             async def __aexit__(self, *args): pass
-            async def json(self): return {'id':'mock-provider-id'}
+            async def json(self): return self.result
         class HTTP:
-            def __init__(self): self.calls = []
+            def __init__(self): self.calls = []; self.break_send = False; self.auth_fail = False
             def post(self, url, **kw):
-                self.calls.append(kw)
-                return Response()
+                self.calls.append((url,kw))
+                if url.endswith('/token'):
+                    r = Response({'access_token':'fake'})
+                    if self.auth_fail: r.status = 400
+                    return r
+                if self.break_send: raise asyncio.TimeoutError()
+                return Response({'id':'gmail-test-id'})
         with tempfile.TemporaryDirectory() as root, patch.dict(os.environ, {
-            'TELEGRAM_BOT_TOKEN':'fake', 'ADMIN_IDS':'42', 'DATA_DIR':root,
-            'SEND_MODE':'test', 'TEST_EMAIL':'mine@example.com',
-            'RESEND_API_KEY':'fake', 'MAIL_FROM':'reports@example.com'}):
-            bot = Bot()
-            bot.http = HTTP()
-            async def say(*args, **kw): pass
+            'TELEGRAM_BOT_TOKEN':'fake','ADMIN_IDS':'42','DATA_DIR':root,'SEND_MODE':'test',
+            'TEST_EMAIL':'mine@example.com','GMAIL_CLIENT_ID':'fake','GMAIL_CLIENT_SECRET':'fake',
+            'GMAIL_REFRESH_TOKEN':'fake','GMAIL_SENDER':'mine@gmail.com'}):
+            bot = Bot(); bot.http = HTTP()
+            async def say(*a,**kw): pass
             bot.say = say
-            d = {'id':'test-case', 'reply':'me@example.com', 'phone':'+2348012345678', 'body':'Reviewed complaint', 'files':[]}
+            d = {'id':'case','reply':'reply@example.com','phone':'+2348012345678','body':'Reviewed text','files':[
+                {'filename':'test.pdf','mime':'application/pdf','content':base64.b64encode(b'%PDF-test').decode()}]}
             bot.store.save(42,'review',d)
-            await bot.send(42,d)
-            await bot.send(42,d)
-            self.assertEqual(len(bot.http.calls),1)
-            self.assertEqual(bot.http.calls[0]['json']['to'],['mine@example.com'])
+            await bot.send(42,d); await bot.send(42,d)
+            sends = [kw for url,kw in bot.http.calls if url.endswith('/send')]
+            self.assertEqual(len(sends),1)
+            message = BytesParser(policy=policy.default).parsebytes(base64.urlsafe_b64decode(sends[0]['json']['raw']))
+            self.assertEqual(str(message['To']),'mine@example.com')
+            self.assertEqual(str(message['Reply-To']),'reply@example.com')
+            self.assertEqual(list(message.iter_attachments())[0].get_payload(decode=True),b'%PDF-test')
             self.assertEqual(bot.store.current(42)[0],'submitted')
-            bot.mode = 'live'
-            d = dict(d, id='live-case')
-            bot.store.save(42,'review',d)
-            await bot.send(42,d)
-            self.assertEqual(bot.http.calls[-1]['json']['to'],['support@whatsapp.com','abuse@whatsapp.com'])
-            self.assertIn('Idempotency-Key',bot.http.calls[-1]['headers'])
-            class BrokenHTTP:
-                def post(self,*args,**kw): raise asyncio.TimeoutError()
-            bot.http = BrokenHTTP()
-            d = dict(d,id='uncertain-case')
-            bot.store.save(42,'review',d)
-            await bot.send(42,d)
+            bot.mode='live'; d=dict(d,id='live')
+            bot.store.save(42,'review',d); await bot.send(42,d)
+            message = BytesParser(policy=policy.default).parsebytes(base64.urlsafe_b64decode(bot.http.calls[-1][1]['json']['raw']))
+            self.assertEqual(str(message['To']),'support@whatsapp.com, abuse@whatsapp.com')
+            bot.http.auth_fail=True; d=dict(d,id='auth')
+            bot.store.save(42,'review',d); await bot.send(42,d)
+            self.assertEqual(bot.store.current(42)[0],'review')
+            bot.http.auth_fail=False; bot.http.break_send=True; d=dict(d,id='unknown')
+            bot.store.save(42,'review',d); await bot.send(42,d)
             self.assertEqual(bot.store.current(42)[0],'unknown')
-            self.assertFalse(bot.store.claim(42,d['id']))
+            self.assertFalse(bot.store.claim(42,'unknown'))
             bot.store.db.close()
 
 if __name__ == '__main__': unittest.main()

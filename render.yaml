@@ -21,9 +21,13 @@ services:
         sync: false
       - key: ADMIN_IDS
         sync: false
-      - key: RESEND_API_KEY
+      - key: GMAIL_CLIENT_ID
         sync: false
-      - key: MAIL_FROM
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: GMAIL_SENDER
         sync: false
       - key: TEST_EMAIL
         sync: false

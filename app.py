@@ -14,6 +14,7 @@ from pathlib import Path
 import aiohttp
 from aiohttp import web
 from dotenv import load_dotenv
+from gmail_mail import GmailMailer, GmailAuthError
 
 load_dotenv()
 CATEGORIES = ['Scam / fraud', 'Cyberbullying / harassment', 'Threats / extortion',
@@ -164,37 +165,40 @@ class Bot:
         await self.say(uid, f"Evidence attached ({len(d['files'])}/4). Send more, /clearfiles, or /preview.")
 
     async def send(self, uid, d):
-        api_key = os.getenv('RESEND_API_KEY')
-        sender = os.getenv('MAIL_FROM')
         targets = RECIPIENTS if self.mode == 'live' else [os.getenv('TEST_EMAIL', '')]
-        if not api_key or not sender or not all(targets):
-            await self.say(uid, 'Mail is not configured. Set RESEND_API_KEY, MAIL_FROM, and TEST_EMAIL for test mode. Nothing was sent.')
+        required = ('GMAIL_CLIENT_ID', 'GMAIL_CLIENT_SECRET', 'GMAIL_REFRESH_TOKEN', 'GMAIL_SENDER')
+        if not all(os.getenv(key) for key in required) or not all(targets):
+            await self.say(uid, 'Gmail is not configured. Set GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN, GMAIL_SENDER, and TEST_EMAIL for test mode. Nothing was sent.')
+            return
+        # Obtain an access token before claiming a send. Auth failures cannot send mail.
+        mailer = GmailMailer(self.http)
+        try:
+            token = await mailer.access_token()
+        except GmailAuthError:
+            await self.say(uid, 'Google authorization failed. Check the Gmail OAuth variables or renew authorization. Nothing was sent; the preview remains available.')
             return
         if not self.store.claim(uid, d['id']):
             await self.say(uid, 'This preview is no longer sendable. Use /status.')
             return
-        payload = {'from': sender, 'to': targets, 'reply_to': d['reply'],
-                   'subject': f"Incident review request — {d['phone']} — {d['id']}",
-                   'text': d['body'], 'attachments': [{'filename': f['filename'], 'content': f['content']} for f in d['files']]}
         d['recipients'] = targets
         try:
-            async with self.http.post('https://api.resend.com/emails', json=payload,
-                                      headers={'Authorization': f'Bearer {api_key}', 'Idempotency-Key': 'sentinel/' + d['id']}) as r:
-                result = await r.json()
-                if r.status in (200, 201) and result.get('id'):
-                    d['provider_id'] = result['id']
-                    self.store.save(uid, 'submitted', d)
-                    message = f"Email accepted by Resend for sending. ID: {result['id']}\nTo: {', '.join(targets)}\nThis does not confirm WhatsApp receipt, review, or action."
-                elif 400 <= r.status < 500 and r.status not in (408, 409, 429):
-                    d['provider_error'] = str(result.get('name', 'rejected'))[:100]
-                    self.store.save(uid, 'rejected', d)
-                    message = 'Mail provider rejected the request. Nothing is confirmed sent. Check your sender domain and Resend dashboard. Use /status.'
-                else:
-                    self.store.save(uid, 'unknown', d)
-                    message = 'Submission outcome is uncertain. Check the Resend dashboard before creating another report. No automatic retry.'
-        except (aiohttp.ClientError, asyncio.TimeoutError, ValueError):
+            status, result = await mailer.submit(token, d, targets)
+            if status == 200 and result.get('id'):
+                d['provider_id'] = result['id']
+                d['provider'] = 'gmail'
+                self.store.save(uid, 'submitted', d)
+                message = f"Gmail accepted this email for sending. Message ID: {result['id']}\nTo: {', '.join(targets)}\nThis does not confirm recipient delivery, WhatsApp review, or account action. Check Gmail Sent and any bounce notices."
+            elif 400 <= status < 500 and status not in (408, 409, 429):
+                d['provider_error'] = 'Gmail rejected request: HTTP ' + str(status)
+                self.store.save(uid, 'rejected', d)
+                message = d['provider_error'] + '. No successful send confirmed. Check authorization, Gmail limits and account settings.'
+            else:
+                self.store.save(uid, 'unknown', d)
+                message = 'Submission outcome is uncertain. Check Gmail Sent before creating another report. No automatic retry.'
+        except Exception:
+            # Gmail has no send idempotency key. Never repeat an uncertain request.
             self.store.save(uid, 'unknown', d)
-            message = 'Submission outcome is uncertain. Check the Resend dashboard. No automatic retry.'
+            message = 'Submission outcome is uncertain. Check Gmail Sent and bounce notices. No automatic retry.'
         await self.say(uid, message)
 
     async def handle(self, update):
@@ -244,14 +248,7 @@ class Bot:
                 await self.say(uid, 'No cases yet. Use /new.')
                 return
             status = f"Case {d['id']}\nState: {state}\nProvider ID: {d.get('provider_id', 'none')}"
-            if d.get('provider_id') and os.getenv('RESEND_API_KEY'):
-                try:
-                    async with self.http.get('https://api.resend.com/emails/' + d['provider_id'], headers={'Authorization': 'Bearer ' + os.environ['RESEND_API_KEY']}) as r:
-                        event = await r.json()
-                        status += '\nProvider event: ' + str(event.get('last_event', 'unavailable'))
-                except (aiohttp.ClientError, asyncio.TimeoutError, ValueError):
-                    status += '\nProvider status unavailable.'
-            await self.say(uid, status + '\nDelivery is not confirmation of review or account action. Replies go to your supplied contact email; they are not read by this bot.')
+            await self.say(uid, status + '\nCheck Gmail Sent, replies and bounce notices in your inbox. This bot has send-only access; it cannot read replies or verify delivery, review or account action.')
             return
         if command == '/delete':
             if state == 'sending':
@@ -264,7 +261,7 @@ class Bot:
             return
         if command == '/new':
             if state == 'unknown':
-                await self.say(uid, 'Previous submission outcome is uncertain. Check Resend first; /delete the local case only after resolving it.')
+                await self.say(uid, 'Previous submission outcome is uncertain. Check Gmail Sent first; /delete the local case only after resolving it.')
                 return
             d = {'id': uuid.uuid4().hex[:12], 'categories': [], 'files': []}
             self.store.save(uid, 'phone', d)
