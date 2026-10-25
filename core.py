@@ -16,6 +16,11 @@ GROUPS = {
     'Exploitation & dangerous activity': list(range(25, 31)),
 }
 
+# Official abuse addresses used when no override is supplied. A configured
+# address is only ever a routing preference: it can never stop the bot sending.
+DEFAULT_REPORTS = {'telegram': 'abuse@telegram.org', 'whatsapp': 'abuse@whatsapp.com'}
+MAX_SENDERS = 10
+
 
 def email(value):
     value = value.strip()
@@ -40,55 +45,81 @@ def target(platform, value):
 
 
 class Config:
+    """Configuration with no address-based gating.
+
+    Every configured sender is used for every report type. No value in the
+    environment can prevent boot or sending: an unusable entry is skipped, a
+    missing report address falls back to the official default, and both are
+    recorded in ``warnings`` for /settings. Credentials are still mandatory —
+    without a bot token and an admin there is nothing to run.
+    """
+
     def __init__(self):
+        self.warnings = []
         self.token = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
         self.admins = {int(n.strip()) for n in os.environ.get('ADMIN_IDS', '').split(',') if n.strip()}
         if not self.token or not self.admins:
             raise ValueError('Set TELEGRAM_BOT_TOKEN and ADMIN_IDS.')
         self.client_id = os.environ.get('GMAIL_CLIENT_ID', '')
         self.client_secret = os.environ.get('GMAIL_CLIENT_SECRET', '')
-        self.accounts = []
+
+        raw = []
         if os.environ.get('GMAIL_SENDER') and os.environ.get('GMAIL_REFRESH_TOKEN'):
-            self.accounts.append({'email': email(os.environ['GMAIL_SENDER']), 'refresh_token': os.environ['GMAIL_REFRESH_TOKEN']})
-        extra = json.loads(os.environ.get('GMAIL_EXTRA_ACCOUNTS_JSON', '[]'))
-        if not isinstance(extra, list) or len(extra) > 9:
-            raise ValueError('GMAIL_EXTRA_ACCOUNTS_JSON must be an array of up to nine backup accounts.')
+            raw.append({'email': os.environ['GMAIL_SENDER'],
+                        'refresh_token': os.environ['GMAIL_REFRESH_TOKEN']})
+        extra_env = (os.environ.get('GMAIL_EXTRA_ACCOUNTS_JSON') or '').strip() or '[]'
+        try:
+            extra = json.loads(extra_env)
+        except json.JSONDecodeError as exc:
+            raise ValueError('GMAIL_EXTRA_ACCOUNTS_JSON must be valid JSON.') from exc
+        if not isinstance(extra, list):
+            raise ValueError('GMAIL_EXTRA_ACCOUNTS_JSON must be a JSON array of sender accounts.')
         for a in extra:
             if not isinstance(a, dict) or not isinstance(a.get('refresh_token'), str) or not a['refresh_token']:
-                raise ValueError('Each additional Gmail needs email and refresh_token.')
-            self.accounts.append({'email': email(a['email']), 'refresh_token': a['refresh_token'],
-                                  'client_id': a.get('client_id', self.client_id), 'client_secret': a.get('client_secret', self.client_secret)})
-        if len({a['email'].lower() for a in self.accounts}) != len(self.accounts):
-            raise ValueError('Gmail sender addresses must be distinct.')
-        self.test_email = os.environ.get('TEST_RECIPIENT_EMAIL', os.environ.get('TEST_EMAIL', '')).strip()
-        self.live = {
-            'telegram': os.environ.get('TELEGRAM_REPORT_EMAIL', '').strip(),
-            'whatsapp': os.environ.get('WHATSAPP_REPORT_EMAIL', '').strip(),
-        }
-        for value in self.live.values():
-            if value:
-                email(value)
-        # Optional test routing must never prevent the Telegram service booting.
-        # Validate only when a test verification/send is explicitly requested.
-        self.data_dir = Path(os.environ.get('DATA_DIR', './data'))
-        self.initial_test = os.environ.get('SEND_MODE', 'test') != 'live'
+                self.warnings.append('Skipped a GMAIL_EXTRA_ACCOUNTS_JSON entry with no refresh_token.')
+                continue
+            raw.append(a)
 
-    def validate_test(self):
-        if not self.test_email:
-            raise ValueError('Set TEST_RECIPIENT_EMAIL to an inbox you control.')
-        self.test_email = email(self.test_email)
-        host = self.test_email.rsplit('@', 1)[1].lower()
-        forbidden = ('telegram.org', 'whatsapp.com', 'whatsapp.net')
-        if any(host == x or host.endswith('.' + x) for x in forbidden):
-            raise ValueError('Test mail cannot go to Telegram or WhatsApp domains.')
-        if self.test_email.lower() in {x.lower() for x in self.live.values() if x}:
-            raise ValueError('Test and live recipient addresses must be different.')
-        return self.test_email
-
-    def primary(self):
+        accounts, seen = [], set()
+        for a in raw:
+            try:
+                address = email(a['email'])
+            except (KeyError, TypeError, ValueError):
+                self.warnings.append('Skipped a sender whose address is not a plain email address.')
+                continue
+            if address.lower() in seen:
+                self.warnings.append('Skipped duplicate sender ' + address + '.')
+                continue
+            seen.add(address.lower())
+            accounts.append({'email': address, 'refresh_token': a['refresh_token'],
+                             'client_id': a.get('client_id', self.client_id),
+                             'client_secret': a.get('client_secret', self.client_secret)})
+        if len(accounts) > MAX_SENDERS:
+            self.warnings.append(
+                f'{len(accounts)} senders configured; using the first {MAX_SENDERS} for every report.')
+        self.accounts = accounts[:MAX_SENDERS]
         if not self.accounts:
-            raise ValueError('Configure your existing GMAIL_SENDER and GMAIL_REFRESH_TOKEN.')
-        return self.accounts[0]
+            self.warnings.append('No Gmail sender configured; reports cannot be sent until one is set.')
+
+        # Routing only. A malformed or missing override never blocks sending.
+        self.reporting = {}
+        for platform, fallback in DEFAULT_REPORTS.items():
+            key = platform.upper() + '_REPORT_EMAIL'
+            value = (os.environ.get(key) or '').strip()
+            if not value:
+                self.reporting[platform] = fallback
+                continue
+            try:
+                self.reporting[platform] = email(value)
+            except ValueError:
+                self.warnings.append(key + ' is not a valid address; using ' + fallback + '.')
+                self.reporting[platform] = fallback
+
+        self.data_dir = Path(os.environ.get('DATA_DIR', './data'))
+
+    def senders(self):
+        """Every configured sender, used for every report type."""
+        return list(self.accounts)
 
 
 class Notes:
@@ -111,9 +142,6 @@ class Notes:
         values = dict(d.get('answers', {}))
         values['account_number'] = d['target']
         values['reporter_contact'] = contact
-        if d['test']:
-            for key in self.fields(d['note']):
-                values.setdefault(key, '[TEST SAMPLE: no incident fact asserted]')
         missing = [k for k in self.fields(d['note']) if not values.get(k, '').strip()]
         if missing:
             raise ValueError('Complete the incident fields before previewing.')
@@ -122,11 +150,6 @@ class Notes:
         if d['platform'] == 'telegram':
             body = body.replace('To WhatsApp’s review team,', 'To Telegram’s review team,')
             body = body.replace('Account concerned:', 'Telegram account or content concerned:')
-        if d['test']:
-            subject = '[KANA NOTES TEST ONLY] ' + subject
-            body = ('TEST ONLY — This is a template/transport test, not an allegation or a takedown request. '
-                    'Do not forward to a platform abuse team. Any displayed identifier is test input; '
-                    'no wrongdoing by its owner is asserted.\n\n' + body)
         body += '\nPrepared with KANA NOTES.\n'
         if '{{' in body or '{{' in subject:
             raise ValueError('Unresolved template marker; correct the input.')
@@ -139,20 +162,11 @@ class Store:
         self.db = sqlite3.connect(path)
         self.db.executescript('''
         CREATE TABLE IF NOT EXISTS cases(id TEXT PRIMARY KEY,owner INTEGER,phase TEXT,data TEXT,updated REAL);
-        CREATE TABLE IF NOT EXISTS settings(owner INTEGER PRIMARY KEY,data TEXT);
         CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY,value TEXT);
         CREATE TABLE IF NOT EXISTS attempts(case_id TEXT,sender TEXT,state TEXT,message_id TEXT,PRIMARY KEY(case_id,sender));
         ''')
         self.db.execute("UPDATE cases SET phase='unknown' WHERE phase='sending'")
         self.db.execute("UPDATE attempts SET state='unknown' WHERE state='sending'")
-        self.db.commit()
-
-    def prefs(self, owner, initial=True):
-        row = self.db.execute('SELECT data FROM settings WHERE owner=?', (owner,)).fetchone()
-        return json.loads(row[0]) if row else {'test': initial, 'multi': False}
-
-    def setprefs(self, owner, p):
-        self.db.execute('INSERT OR REPLACE INTO settings VALUES (?,?)', (owner, json.dumps(p)))
         self.db.commit()
 
     def save(self, owner, phase, d):

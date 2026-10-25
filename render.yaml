@@ -11,8 +11,6 @@ services:
         value: 3.12.11
       - key: DATA_DIR
         value: ./data
-      - key: SEND_MODE
-        value: test
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: ADMIN_IDS
@@ -21,15 +19,13 @@ services:
         sync: false
       - key: GMAIL_CLIENT_SECRET
         sync: false
-      - key: GMAIL_REFRESH_TOKEN
-        sync: false
       - key: GMAIL_SENDER
         sync: false
-      - key: TEST_RECIPIENT_EMAIL
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: GMAIL_EXTRA_ACCOUNTS_JSON
         sync: false
       - key: TELEGRAM_REPORT_EMAIL
         sync: false
       - key: WHATSAPP_REPORT_EMAIL
         sync: false
-      - key: GMAIL_EXTRA_ACCOUNTS_JSON
-        value: '[]'
