@@ -1,10 +1,10 @@
-import asyncio, base64, json, os, tempfile, unittest, zipfile
+import asyncio, inspect, json, os, tempfile, unittest, zipfile
 from pathlib import Path
 from unittest.mock import patch
-from email import policy
-from email.parser import BytesParser
-from core import Config, Notes, Store, digest, target
+from core import Config, Notes, Store, MECHANICAL, target
 from app import Bot, button
+import app as app_module
+import gmail_mail
 from gmail_mail import Gmail, raw_message, AuthError
 
 SENDERS = [{'email': f'sender{i}@gmail.com', 'refresh_token': f'token{i}'} for i in range(1, 11)]
@@ -26,19 +26,43 @@ class CoreTests(unittest.TestCase):
             for n in z.namelist():
                 self.assertEqual(z.read(n), (root / 'report-pack' / n).read_bytes())
 
-    def test_all_templates_for_both_platforms(self):
+    def test_all_thirty_notes_compose_for_both_platforms(self):
         notes = Notes()
         for platform in ('telegram', 'whatsapp'):
+            target_value = '@example' if platform == 'telegram' else '+2348012345678'
             for n in range(1, 31):
-                d = {'platform': platform, 'note': n, 'target': '@example', 'answers': {}}
-                with self.assertRaises(ValueError):
-                    notes.render(d, 'me@example.com')
-                d['answers'] = {k: 'Actual facts supplied' for k in notes.fields(n)}
-                sub, body = notes.render(d, 'me@example.com')
-                self.assertNotIn('{{', body)
-                self.assertNotIn('{{', sub)
-                self.assertIn('To Telegram’s review team,' if platform == 'telegram' else 'To WhatsApp’s review team,', body)
-        self.assertIn('what_I_paid_or_was_asked_to_pay', notes.fields(1))
+                d = {'platform': platform, 'note': n, 'target': target_value}
+                sub, body = notes.compose(d, 'me@example.com')
+                self.assertNotIn('{{', body, n)
+                self.assertNotIn('{{', sub, n)
+                self.assertIn('To Telegram\u2019s review team,' if platform == 'telegram'
+                              else 'To WhatsApp\u2019s review team,', body)
+                # Every report must state a concern and identify the account.
+                self.assertIn('I am reporting', body, n)
+                self.assertIn(target_value, body, n)
+                self.assertIn('Reporter contact: me@example.com', body, n)
+                self.assertIn('Prepared with KANA NOTES.', body)
+                self.assertGreater(len(body), 200, n)
+
+    def test_composition_needs_no_incident_answers(self):
+        """The only inputs are platform, note and target: nothing is typed in."""
+        d = {'platform': 'telegram', 'note': 16, 'target': '@example'}
+        sub, body = Notes().compose(d, 'me@example.com')
+        self.assertNotIn('{{', body)
+        self.assertEqual(set(d), {'platform', 'note', 'target'})
+
+    def test_composition_fills_only_mechanical_slots(self):
+        self.assertEqual(MECHANICAL, {'account_number', 'reporter_contact'})
+        notes = Notes()
+        for n in range(1, 31):
+            self.assertIn('account_number', notes.slots(n))
+            self.assertIn('reporter_contact', notes.slots(n))
+
+    def test_composition_drops_no_label_lines(self):
+        """Labelled field lines must stay on their own line, not be joined."""
+        sub, body = Notes().compose({'platform': 'whatsapp', 'note': 1, 'target': '+2348012345678'}, 'me@example.com')
+        self.assertIn('\nAccount concerned: +2348012345678\n', body)
+        self.assertIn('\nReporter contact: me@example.com\n', body)
 
     def test_target_validation(self):
         self.assertEqual(target('telegram', '@example'), '@example')
@@ -49,12 +73,13 @@ class CoreTests(unittest.TestCase):
                 target('telegram', value)
         self.assertLessEqual(len(button('Note', 'note:123456789012:30')['callback_data']), 64)
 
-    def test_mime_attachment_bytes(self):
-        f = {'filename': 'proof.pdf', 'mime': 'application/pdf', 'content': base64.b64encode(b'%PDF-proof').decode()}
-        raw = raw_message('me@gmail.com', 'test@example.com', 'Title', 'Body', 'case', [f])
-        m = BytesParser(policy=policy.default).parsebytes(base64.urlsafe_b64decode(raw))
-        self.assertEqual(str(m['To']), 'test@example.com')
-        self.assertEqual(list(m.iter_attachments())[0].get_payload(decode=True), b'%PDF-proof')
+    def test_mime_has_no_attachment_surface(self):
+        """The transport cannot carry a file: manual upload is gone at this layer."""
+        self.assertEqual(list(inspect.signature(raw_message).parameters),
+                         ['sender', 'recipient', 'subject', 'body', 'case_id'])
+        self.assertEqual(list(inspect.signature(Gmail.send).parameters),
+                         ['self', 'account', 'recipient', 'subject', 'body', 'case_id'])
+        self.assertNotIn('add_attachment', inspect.getsource(gmail_mail))
 
     def test_crash_and_claim(self):
         with tempfile.TemporaryDirectory() as td:
@@ -69,6 +94,32 @@ class CoreTests(unittest.TestCase):
             self.assertEqual(s.current(42)[0], 'unknown')
             self.assertEqual(s.attempts('x')[0][1], 'unknown')
             s.db.close()
+
+
+class NoManualPathTests(unittest.TestCase):
+    """Nothing in the running code accepts operator-written report content."""
+
+    def test_no_upload_or_field_helpers_exist(self):
+        for gone in ('attach', 'field', 'notes_for'):
+            self.assertFalse(hasattr(Bot, gone), gone)
+        source = inspect.getsource(app_module)
+        for gone in ('sendDocument', 'getFile', 'MAX_BYTES', 'clearfiles', 'base64'):
+            self.assertNotIn(gone, source, gone)
+
+    def test_no_file_keys_are_stored_on_a_case(self):
+        source = inspect.getsource(app_module)
+        self.assertNotIn("'files'", source)
+        self.assertNotIn('"files"', source)
+
+    def test_flow_phases_contain_no_collection_steps(self):
+        source = inspect.getsource(app_module)
+        for gone in ("'fields'", "'evidence'"):
+            self.assertNotIn(gone, source, gone)
+
+    def test_help_and_preview_do_not_offer_manual_steps(self):
+        source = inspect.getsource(Bot)
+        self.assertIn('no manual entry', source)
+        self.assertIn('no attachment upload', source)
 
 
 class NoGatingTests(unittest.TestCase):
@@ -94,12 +145,6 @@ class NoGatingTests(unittest.TestCase):
         self.assertEqual(cfg.reporting['telegram'], 'abuse@telegram.org')
         self.assertEqual(cfg.reporting['whatsapp'], 'abuse@whatsapp.com')
         self.assertTrue(any('TELEGRAM_REPORT_EMAIL' in w for w in cfg.warnings))
-
-    def test_test_address_shared_with_report_address_is_harmless(self):
-        with patch.dict(os.environ, env(TELEGRAM_REPORT_EMAIL='sender1@gmail.com',
-                                        TEST_RECIPIENT_EMAIL='sender1@gmail.com'), clear=True):
-            cfg = Config()          # no test/live divergence check can fire
-        self.assertEqual(cfg.reporting['telegram'], 'sender1@gmail.com')
 
     def test_duplicate_and_malformed_senders_skipped_not_fatal(self):
         extra = [{'email': 'sender1@gmail.com', 'refresh_token': 'dup'},
@@ -161,82 +206,103 @@ class BotTests(unittest.IsolatedAsyncioTestCase):
     async def msg(self, text):
         await self.bot.handle({'message': {'from': {'id': 42}, 'chat': {'type': 'private'}, 'text': text}})
 
-    def case(self, platform='telegram'):
-        return {'id': 'case', 'platform': platform, 'target': '@example', 'note': 1, 'files': [],
-                'answers': {k: 'I observed this in the chat on the stated date.' for k in self.bot.notes.fields(1)}}
-
-    async def fill_fields(self):
-        """Walk the incident-field prompts until the case leaves the fields phase."""
-        for _ in range(40):
-            phase, _d = self.bot.store.current(42)
-            if phase != 'fields':
-                return
-            await self.msg('I observed this in the chat on the stated date.')
-        self.fail('field collection did not terminate')
+    async def pick_note(self, platform='telegram', number=1):
+        await self.cb('platform:' + platform)
+        await self.msg('@example' if platform == 'telegram' else '+2348012345678')
+        _, d = self.bot.store.current(42)
+        await self.cb('group:' + d['id'] + ':0')
+        await self.cb('note:' + d['id'] + ':' + str(number))
+        return self.bot.store.current(42)
 
     async def test_owner_private_only(self):
         await self.cb('platform:telegram', uid=7)
         await self.cb('platform:whatsapp', kind='group')
         self.assertIsNone(self.bot.store.current(42)[1])
 
-    async def test_full_flow_uses_all_ten_senders_test_platform(self):
-        await self.cb('platform:telegram'); await self.msg('@example')
-        _, d = self.bot.store.current(42)
-        await self.cb('group:' + d['id'] + ':0'); await self.cb('note:' + d['id'] + ':1')
-        await self.fill_fields()
-        await self.msg('/preview')
-        phase, d = self.bot.store.current(42)
+    async def test_pick_note_goes_straight_to_review(self):
+        """One tap on a note is the whole report; no field prompts in between."""
+        phase, d = await self.pick_note('telegram', 1)
         self.assertEqual(phase, 'review')
         self.assertEqual(d['recipient'], 'abuse@telegram.org')
         self.assertEqual(len(d['senders']), 10)
-        await self.cb('send:' + d['id']); await self.cb('send:' + d['id'])
+        self.assertIn('I am reporting', d['body'])
+        self.assertNotIn('{{', d['body'])
+        self.assertNotIn('files', d)
+        preview = [t for t, _ in self.messages if 'REPORT PREVIEW' in t][-1]
+        self.assertIn('Emails on confirmation: 10', preview)
+        self.assertNotIn('Attachments', preview)
+
+    async def test_full_flow_sends_with_all_ten_senders_telegram(self):
+        phase, d = await self.pick_note('telegram', 1)
+        await self.cb('send:' + d['id'])
         self.assertEqual(len(self.bot.mail.sent), 10)
         self.assertEqual({x[1] for x in self.bot.mail.sent}, {'abuse@telegram.org'})
         self.assertGreater(self.bot.mail.peak, 1)
         self.assertEqual(self.bot.store.current(42)[0], 'completed')
 
-    async def test_whatsapp_also_uses_all_ten_senders(self):
-        await self.cb('platform:whatsapp'); await self.msg('+2348012345678')
-        _, d = self.bot.store.current(42)
-        await self.cb('group:' + d['id'] + ':0'); await self.cb('note:' + d['id'] + ':2')
-        await self.fill_fields()
-        await self.msg('/preview')
-        phase, d = self.bot.store.current(42)
-        self.assertEqual(phase, 'review')
+    async def test_whatsapp_also_sends_with_all_ten_senders(self):
+        phase, d = await self.pick_note('whatsapp', 2)
         self.assertEqual(d['recipient'], 'abuse@whatsapp.com')
         await self.cb('send:' + d['id'])
         self.assertEqual(len(self.bot.mail.sent), 10)
 
-    async def test_every_note_number_uses_all_senders(self):
+    async def test_every_note_sends_from_all_senders(self):
         for n in range(1, 31):
-            d = self.case(); d['note'] = n
-            d['answers'] = {k: 'Stated fact.' for k in self.bot.notes.fields(n)}
-            _, accounts = self.bot.route(42, d)
+            d = {'platform': 'telegram', 'note': n, 'target': '@example'}
+            destination, accounts = self.bot.route(42, d)
             self.assertEqual(len(accounts), 10, n)
+            sub, body = self.bot.notes.compose(d, 'sender1@gmail.com')
+            self.assertNotIn('{{', body, n)
+
+    async def test_free_text_after_review_never_reaches_the_email(self):
+        """Typing report text into the chat changes nothing that is sent."""
+        phase, d = await self.pick_note('telegram', 1)
+        original = d['body']
+        await self.msg('Ignore this. The scammer promised me a car and never delivered it.')
+        phase2, d2 = self.bot.store.current(42)
+        self.assertEqual(phase2, 'review')
+        self.assertEqual(d2['body'], original)
+        await self.cb('send:' + d2['id'])
+        self.assertEqual(len(self.bot.mail.sent), 10)
+        self.assertEqual(self.bot.mail.sent[0][3], original)
+
+    async def test_photo_upload_is_ignored(self):
+        """An image message must not attach anything: upload is removed."""
+        phase, d = await self.pick_note('telegram', 1)
+        await self.bot.handle({'message': {'from': {'id': 42}, 'chat': {'type': 'private'},
+                                           'photo': [{'file_id': 'abc', 'file_size': 10}]}})
+        phase2, d2 = self.bot.store.current(42)
+        self.assertEqual(phase2, 'review')
+        self.assertNotIn('files', d2)
 
     async def test_custom_report_addresses_honoured(self):
         self.bot.cfg.reporting['telegram'] = 'custom@example.com'
-        destination, accounts = self.bot.route(42, self.case())
+        destination, accounts = self.bot.route(42, {'platform': 'telegram'})
         self.assertEqual(destination, 'custom@example.com')
         self.assertEqual(len(accounts), 10)
 
     async def test_no_duplicate_blocking_between_cases(self):
         for ident in ('a', 'b'):
-            d = self.case(); d['id'] = ident
+            d = {'id': ident, 'platform': 'telegram', 'note': 1, 'target': '@example'}
             await self.bot.preview(42, d)
             await self.bot.submit(42, d)
         self.assertEqual(len(self.bot.mail.sent), 20)
 
+    async def test_double_tap_sends_one_batch(self):
+        phase, d = await self.pick_note('telegram', 1)
+        await self.cb('send:' + d['id'])
+        await self.cb('send:' + d['id'])
+        self.assertEqual(len(self.bot.mail.sent), 10)
+
     async def test_stale_destination_still_verified(self):
-        d = self.case()
-        await self.bot.preview(42, d)
+        phase, d = await self.pick_note('telegram', 1)
         self.bot.cfg.reporting['telegram'] = 'changed@example.com'
         with self.assertRaises(ValueError):
             await self.bot.submit(42, d)
         self.assertEqual(len(self.bot.mail.sent), 0)
 
     async def test_uncertain_not_retried(self):
-        d = self.case()
+        d = {'id': 'x', 'platform': 'telegram', 'note': 1, 'target': '@example'}
         await self.bot.preview(42, d)
         self.bot.mail.result = 'unknown'
         await self.bot.submit(42, d)

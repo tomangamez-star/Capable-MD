@@ -1,19 +1,21 @@
-"""KANA NOTES Telegram assistant and Render health server."""
+"""KANA NOTES Telegram assistant and Render health server.
+
+The only report this bot can produce is one of the 30 notes shipped in
+``assets/report-pack``. There is no manual composition path: no free-text
+incident fields, no image or document upload, no attachment transport and no
+custom mode. The operator picks a note, sees the exact message, and confirms.
+"""
 import asyncio
-import base64
 import logging
 import os
 import time
 import uuid
-from pathlib import Path
 
 import aiohttp
 from aiohttp import web
 from dotenv import load_dotenv
 from core import Config, Notes, Store, GROUPS, target
 from gmail_mail import Gmail, AuthError
-
-MAX_BYTES = 8 * 1024 * 1024
 
 
 def button(text, data):
@@ -43,14 +45,14 @@ class Bot:
     async def home(self, uid):
         await self.say(uid, 'KANA NOTES\nChoose a platform.\n\n'
                        f'Senders: {len(self.cfg.senders())}/10 configured\n'
-                       'Every report is sent from all configured senders.\n\n'
+                       'Every report is one of the 30 shipped notes, sent from all senders.\n\n'
                        '/settings · /status · /cancel · /help', [
             [button('Telegram X', 'platform:telegram'), button('WhatsApp X', 'platform:whatsapp')],
             [button('Settings', 'settings')]])
 
     def cancel_draft(self, uid):
         phase, d = self.store.current(uid)
-        if d and phase in ('target', 'group', 'notes', 'fields', 'evidence', 'review'):
+        if d and phase in ('target', 'group', 'notes', 'review'):
             self.store.save(uid, 'cancelled', d)
 
     async def settings(self, uid):
@@ -69,17 +71,6 @@ class Bot:
         self.store.save(uid, 'group', d)
         await self.say(uid, 'Choose a category:', [[button(name, f"group:{d['id']}:{i}")] for i, name in enumerate(GROUPS)])
 
-    async def field(self, uid, d):
-        missing = [k for k in self.notes.fields(d['note']) if k not in d['answers']]
-        if not missing:
-            self.store.save(uid, 'evidence', d)
-            await self.say(uid, 'Attach relevant JPEG/PNG screenshots or a PDF (four files / 8 MB total), then /preview. '
-                           'Message links/references can support the case without a screenshot. Do not upload illegal or intimate imagery. /clearfiles removes draft attachments.')
-            return
-        d['field'] = missing[0]
-        self.store.save(uid, 'fields', d)
-        await self.say(uid, 'Add: ' + missing[0].replace('_', ' ') + '\nState what you actually know. If something is unknown, say so; do not guess. (Max 1500 characters.)')
-
     def route(self, uid, d):
         """Destination plus every configured sender, for every report type."""
         destination = self.cfg.reporting.get(d['platform'])
@@ -92,30 +83,22 @@ class Bot:
 
     async def preview(self, uid, d):
         destination, accounts = self.route(uid, d)
-        d['subject'], d['body'] = self.notes.render(d, accounts[0]['email'])
+        d['subject'], d['body'] = self.notes.compose(d, accounts[0]['email'])
         d['recipient'] = destination
         d['senders'] = [a['email'] for a in accounts]
         self.store.save(uid, 'review', d)
-        await self.say(uid, f'REPORT PREVIEW\nTo: {destination}\n'
-                       f"From: {', '.join(d['senders'])}\nEmails on confirmation: {len(accounts)}\nAttachments: {len(d['files'])}\n\n"
+        await self.say(uid, f"REPORT PREVIEW\nNote: {self.notes.note(d['note'])['display_name']}\n"
+                       f'To: {destination}\n'
+                       f"From: {', '.join(d['senders'])}\nEmails on confirmation: {len(accounts)}\n\n"
                        f"Subject: {d['subject']}\n\n{d['body']}")
-        for f in d['files']:
-            form = aiohttp.FormData()
-            form.add_field('chat_id', str(uid))
-            form.add_field('document', base64.b64decode(f['content']), filename=f['filename'], content_type=f['mime'])
-            async with self.http.post(f'https://api.telegram.org/bot{self.cfg.token}/sendDocument', data=form) as r:
-                result = await r.json()
-                if not result.get('ok'):
-                    self.store.save(uid, 'evidence', d)
-                    raise ValueError('An attachment preview failed. Preview again before confirming.')
-        await self.say(uid, 'Confirm this exact preview. Confirm the details are accurate to your knowledge and you are authorized to share the evidence. Gmail acceptance is not proof of delivery or platform action.', [
+        await self.say(uid, 'Confirm to send exactly this text. Confirm the details are accurate to your knowledge. Gmail acceptance is not proof of delivery or platform action.', [
             [button('Confirm and send', f"send:{d['id']}")],
             [button('Cancel', f"cancel:{d['id']}")]])
 
     async def submit(self, uid, d):
         destination, accounts = self.route(uid, d)
         if destination != d.get('recipient') or [a['email'] for a in accounts] != d.get('senders'):
-            raise ValueError('Configuration changed. Preview again before sending.')
+            raise ValueError('Configuration changed. Pick the note again before sending.')
         if not self.store.claim(uid, d['id']):
             await self.say(uid, 'This case is no longer sendable. Use /status.')
             return
@@ -123,7 +106,7 @@ class Bot:
             self.store.attempt(d['id'], a['email'], 'sending')
         async def one(a):
             try:
-                status, mid = await self.mail.send(a, destination, d['subject'], d['body'], d['id'], d['files'])
+                status, mid = await self.mail.send(a, destination, d['subject'], d['body'], d['id'])
             except AuthError:
                 status, mid = 'auth_failed', ''
             except Exception:
@@ -145,22 +128,6 @@ class Bot:
                        f"To: {d.get('recipient', 'not previewed')}\n" +
                        '\n'.join(f'{a}: {s}' + (f' · {mid}' if mid else '') for a,s,mid in results) +
                        '\n\nsubmitted = Gmail accepted the send request, not verified delivery or review. Check Gmail Sent, replies and bounce notices yourself. Uncertain sends are never automatically retried.')
-
-    async def attach(self, uid, d, raw):
-        if len(d['files']) >= 4 or len(raw) + sum(f['size'] for f in d['files']) > MAX_BYTES:
-            raise ValueError('Maximum four attachments and 8 MB total.')
-        if raw.startswith(b'\xff\xd8\xff'):
-            ext, mime = 'jpg', 'image/jpeg'
-        elif raw.startswith(b'\x89PNG\r\n\x1a\n'):
-            ext, mime = 'png', 'image/png'
-        elif raw.startswith(b'%PDF-'):
-            ext, mime = 'pdf', 'application/pdf'
-        else:
-            raise ValueError('Only JPEG, PNG or PDF evidence is supported.')
-        d['files'].append({'filename': f"evidence-{len(d['files'])+1}.{ext}", 'mime': mime,
-                           'size': len(raw), 'content': base64.b64encode(raw).decode()})
-        self.store.save(uid, 'evidence', d)
-        await self.say(uid, f"Attached {len(d['files'])}/4. Send more or /preview.")
 
     async def handle(self, update):
         cb = update.get('callback_query')
@@ -184,7 +151,7 @@ class Bot:
                 if phase in ('sending','unknown'):
                     raise ValueError('Check the previous uncertain submission first. Use /status; no resend is available.')
                 self.cancel_draft(uid)
-                d = {'id': uuid.uuid4().hex[:12], 'platform': data[1], 'files': [], 'answers': {}}
+                d = {'id': uuid.uuid4().hex[:12], 'platform': data[1]}
                 self.store.save(uid, 'target', d)
                 await self.say(uid, 'Enter an @username or https://t.me/... message link.' if data[1] == 'telegram' else 'Enter the WhatsApp number in international format, starting with +.')
             elif len(data) >= 2 and d and data[1] == d['id']:
@@ -200,10 +167,7 @@ class Bot:
                     if not self.notes.note(number):
                         return
                     d['note'] = number
-                    senders = self.cfg.senders()
-                    d['answers'] = {'account_number': d['target'],
-                                    'reporter_contact': senders[0]['email'] if senders else ''}
-                    await self.field(uid, d)
+                    await self.preview(uid, d)
                 elif action == 'send' and phase == 'review':
                     await self.submit(uid, d)
                 elif action == 'cancel' and phase == 'review':
@@ -231,39 +195,12 @@ class Bot:
             await self.say(uid, 'Latest local case details removed. Send records remain; emails and Telegram copies are not deleted.')
         elif cmd == '/help':
             await self.say(uid, 'KANA NOTES\n/start — Telegram X / WhatsApp X\n/settings — senders and report addresses\n/status — latest case\n/cancel — cancel draft\n/delete — delete latest local case details\n\n'
-                           'Every report is emailed from all configured Gmail senders to the platform abuse address. No automatic account bans or delivery claims.')
+                           'Reports come only from the shipped 30-note pack: choose a note, review the exact text, confirm. There is no manual entry, no attachment upload and no custom mode. Every report is emailed from all configured Gmail senders to the platform abuse address. No automatic account bans or delivery claims.')
         elif phase == 'target':
             d['target'] = target(d['platform'], text)
             await self.groups(uid, d)
-        elif phase == 'fields':
-            if not 1 <= len(text) <= 1500 or '{{' in text:
-                raise ValueError('Provide 1–1500 characters of actual information, without template markers.')
-            if text.startswith('/'):
-                raise ValueError('Send the requested incident detail, or /cancel.')
-            d['answers'][d['field']] = text
-            await self.field(uid, d)
-        elif phase in ('evidence','review'):
-            if cmd == '/preview':
-                await self.preview(uid, d)
-            elif cmd == '/clearfiles':
-                d['files'] = []
-                self.store.save(uid, 'evidence', d)
-                await self.say(uid, 'Draft attachments removed. /preview again before sending.')
-            elif msg.get('photo') or msg.get('document'):
-                item = msg['photo'][-1] if msg.get('photo') else msg['document']
-                if item.get('file_size', MAX_BYTES+1) > MAX_BYTES:
-                    raise ValueError('File exceeds 8 MB.')
-                meta = await self.tg('getFile', file_id=item['file_id'])
-                raw = bytearray()
-                async with self.http.get(f'https://api.telegram.org/file/bot{self.cfg.token}/' + meta['file_path']) as r:
-                    r.raise_for_status()
-                    async for chunk in r.content.iter_chunked(65536):
-                        raw.extend(chunk)
-                        if len(raw) > MAX_BYTES:
-                            raise ValueError('File exceeds 8 MB.')
-                await self.attach(uid, d, bytes(raw))
-            else:
-                await self.say(uid, 'Use /preview or the confirmation button, or /cancel.')
+        elif phase == 'review':
+            await self.say(uid, 'Use the Confirm or Cancel button, or /cancel. Reports are composed only from the 30 shipped notes; text and files sent here are not used.')
         else:
             await self.say(uid, 'Use /start to choose a platform.')
 

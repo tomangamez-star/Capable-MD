@@ -1,4 +1,4 @@
-"""Configuration, original note-pack rendering, and durable state."""
+"""Configuration, original note-pack composition, and durable state."""
 import hashlib
 import json
 import os
@@ -20,6 +20,11 @@ GROUPS = {
 # address is only ever a routing preference: it can never stop the bot sending.
 DEFAULT_REPORTS = {'telegram': 'abuse@telegram.org', 'whatsapp': 'abuse@whatsapp.com'}
 MAX_SENDERS = 10
+
+# The only slots this bot can fill without asking the operator for anything: the
+# account under report, and the first sender as the reply address. Every other
+# slot in the pack describes an incident fact, and facts are never typed in.
+MECHANICAL = frozenset({'account_number', 'reporter_contact'})
 
 
 def email(value):
@@ -123,6 +128,18 @@ class Config:
 
 
 class Notes:
+    """The approved 30-note pack, composed without any manual report text.
+
+    The pack's templates interleave fixed report wording with incident-detail
+    slots such as ``{{promised_item_or_service}}``. This bot collects no free
+    text, uploads no files and has no compose mode, so a slot cannot be filled.
+    Rather than invent a fact or ship an unfilled marker, composition keeps
+    every sentence whose slots the bot fills mechanically (the account under
+    report and the reply address) and drops the sentences that would need
+    operator-supplied detail. The result is always grammatical, always true to
+    what was actually supplied, and never asserts an unverified fact.
+    """
+
     def __init__(self, path=None):
         path = path or Path(__file__).parent / 'assets/report-pack/report_notes.json'
         self.notes = json.loads(Path(path).read_text())['templates']
@@ -132,27 +149,69 @@ class Notes:
     def note(self, number):
         return self.notes[int(number)-1] if 1 <= int(number) <= 30 else None
 
-    def fields(self, number):
+    def slots(self, number):
         n = self.note(number)
         # Original pack metadata misses names containing capital I; derive from actual text.
         return list(dict.fromkeys(FIELDS.findall(n['subject_template'] + '\n' + n['body_template'])))
 
-    def render(self, d, contact):
+    @staticmethod
+    def _mechanical(sentence):
+        """True when every slot in this sentence is one the bot can fill itself."""
+        return set(FIELDS.findall(sentence)) <= MECHANICAL
+
+    @staticmethod
+    def _fill(text, values):
+        return FIELDS.sub(lambda m: values.get(m[1], ''), text)
+
+    def _body(self, template, values):
+        """Keep the pack's fixed wording; drop sentences that need incident facts.
+
+        Line structure is preserved, because the pack places one labelled field
+        per line and joining a whole paragraph would run the labels together.
+        """
+        paragraphs = []
+        for block in template.split('\n\n'):
+            lines = []
+            for line in block.split('\n'):
+                kept = [p for p in re.split(r'(?<=\.)\s+', line.strip()) if self._mechanical(p)]
+                if kept:
+                    lines.append(' '.join(self._fill(p, values) for p in kept))
+            if lines:
+                paragraphs.append('\n'.join(lines))
+        return '\n\n'.join(paragraphs)
+
+    @staticmethod
+    def _concern(display_name):
+        """A truthful one-line statement of the reported category.
+
+        Taken from the pack's own note name, so it reports the category the
+        operator chose and never asserts an incident fact nobody supplied.
+        """
+        phrase = display_name.lower()
+        article = 'an' if phrase[0] in 'aeiou' else 'a'
+        return f'I am reporting the account identified below for {article} {phrase}.'
+
+    def compose(self, d, contact):
+        """Build the exact outgoing message. No operator text, no files."""
         n = self.note(d['note'])
-        values = dict(d.get('answers', {}))
-        values['account_number'] = d['target']
-        values['reporter_contact'] = contact
-        missing = [k for k in self.fields(d['note']) if not values.get(k, '').strip()]
-        if missing:
-            raise ValueError('Complete the incident fields before previewing.')
-        subject = FIELDS.sub(lambda m: values[m[1]], n['subject_template'])
-        body = FIELDS.sub(lambda m: values[m[1]], n['body_template'])
+        values = {'account_number': d['target'], 'reporter_contact': contact}
+        subject = self._fill(n['subject_template'], values).strip()
+        if not subject or '{{' in subject:
+            subject = 'Request for review: ' + n['display_name'] + ' — ' + d['target']
+        body = self._body(n['body_template'], values)
+        if not re.search(r'\bI am reporting\b', body):
+            # A few notes lead with a sentence that only reads correctly beside
+            # incident detail. Without a stated concern the report is unusable,
+            # so state the category right after the salutation.
+            concern = self._concern(n['display_name'])
+            head, sep, tail = body.partition('\n\n')
+            body = head + sep + concern + sep + tail if sep else concern + sep + body
         if d['platform'] == 'telegram':
             body = body.replace('To WhatsApp’s review team,', 'To Telegram’s review team,')
             body = body.replace('Account concerned:', 'Telegram account or content concerned:')
         body += '\nPrepared with KANA NOTES.\n'
-        if '{{' in body or '{{' in subject:
-            raise ValueError('Unresolved template marker; correct the input.')
+        if '{{' in body or not body.strip():
+            raise ValueError('Note ' + str(d['note']) + ' composed to an unusable report.')
         return subject, body
 
 

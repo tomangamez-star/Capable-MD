@@ -8,7 +8,7 @@ class AuthError(Exception):
     pass
 
 
-def raw_message(sender, recipient, subject, body, case_id, files=()):
+def raw_message(sender, recipient, subject, body, case_id):
     msg = EmailMessage(policy=SMTP)
     msg['From'] = f'KANA NOTES <{sender}>'
     msg['To'] = recipient
@@ -18,9 +18,6 @@ def raw_message(sender, recipient, subject, body, case_id, files=()):
     # Stable for reconciliation; Gmail does not promise deduplication by Message-ID.
     msg['Message-ID'] = f'<kana.{case_id}@{sender.split("@")[1]}>'
     msg.set_content(body)
-    for f in files:
-        major, minor = f['mime'].split('/', 1)
-        msg.add_attachment(base64.b64decode(f['content'], validate=True), maintype=major, subtype=minor, filename=f['filename'])
     return base64.urlsafe_b64encode(msg.as_bytes()).decode('ascii')
 
 
@@ -42,8 +39,8 @@ class Gmail:
         except Exception as exc:
             raise AuthError('Google authorization failed; check or renew the credentials') from exc
 
-    async def send(self, account, recipient, subject, body, case_id, files=()):
-        raw = raw_message(account['email'], recipient, subject, body, case_id, files)
+    async def send(self, account, recipient, subject, body, case_id):
+        raw = raw_message(account['email'], recipient, subject, body, case_id)
         token = await self.token(account)  # Authorization failures happen before submission.
         try:
             async with self.http.post('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',

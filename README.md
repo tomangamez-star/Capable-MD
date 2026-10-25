@@ -2,24 +2,37 @@
 
 Telegram assistant with **Telegram X** and **WhatsApp X**, the original 30-note report pack, and send-only Gmail transport. This is a full replacement project, not a patch. No custom domain, Resend or Supabase is needed.
 
-**Every report is emailed from all configured sender accounts** (up to ten) to the platform abuse address. Nothing about a configured email address can stop the bot booting or sending.
+**Every report is one of the 30 shipped notes**, emailed from all configured sender accounts (up to ten) to the platform abuse address. Nothing about a configured email address can stop the bot booting or sending.
 
 ## What changed in this revision
 
-The test-mode gating and the single-sender restrictions were removed:
+Manual reporting is gone. The bot can only send from the approved note pack:
 
-- **No test mode.** There is no `SEND_MODE` toggle, no test-inbox verification step (`/verify_test`, `/verify_code`) and no test-recipient routing. Every case is a report.
-- **No sender limits.** All configured senders are used for every report type, on both platforms, for all 30 notes. The "10× test" toggle is gone because ten senders is now the normal path, not an opt-in.
-- **No address-based blocking.** A missing or malformed `TELEGRAM_REPORT_EMAIL` / `WHATSAPP_REPORT_EMAIL` falls back to the official address instead of raising. Test and report addresses may be the same without conflict.
-- **No sender allowlist or "verified sender" gate.** Extra senders are loaded straight from `GMAIL_EXTRA_ACCOUNTS_JSON`.
-- **No daily/hourly caps, cooldowns or round-robin limits** — there were none, and none were added.
-- **Per-sender status is preserved.** Each sender still records `submitted` / `rejected` / `auth_failed` / `unknown` independently, so one failing account does not hide the others.
+- **No manual text entry.** The incident-field prompts are removed. There is no free-text collection step, no `/preview` free-form path and no compose mode.
+- **No image or file upload.** Photo, document and screenshot handling is removed, along with the 8 MB / four-file limits, the `/clearfiles` command and the attachment transport in `gmail_mail.py`. `raw_message()` no longer takes a `files` argument at all.
+- **No evidence state.** The flow is now exactly: **pick a note → confirm → it sends with all senders.**
 
 What is deliberately **kept**:
 
 - Confirmation before sending, with a fresh preview required if the destination or sender list changed.
+- The atomic claim against double-tap: a case can only be sent once.
 - Independent per-sender results and `/status`.
 - Uncertainty handling: an ambiguous send is **never retried automatically**.
+
+Carried over from the previous revision: no test mode (`SEND_MODE`), no test-recipient routing, no sender allowlist, no daily/hourly caps or cooldowns, and no address-based blocking.
+
+## How a report is composed
+
+The pack's 30 notes are **templates**, not ready-to-send letters: each interleaves fixed report wording with incident-detail slots such as `{{promised_item_or_service}}` and `{{incident_dates_and_timezone}}` — roughly nine slots per note.
+
+Because the bot now collects nothing from the operator, those slots cannot be filled. It does not invent a fact and does not send an unfilled marker. Composition therefore:
+
+1. fills the only slots it can fill mechanically — **`account_number`** (the target you entered) and **`reporter_contact`** (your first sender);
+2. keeps every sentence whose slots are mechanical only, preserving the pack's line structure so labelled fields stay on their own line;
+3. drops the sentences that would need an incident fact;
+4. if that leaves no statement of the concern, adds one line taken from the note's own name — for example *"I am reporting the account identified below for a payment scam."*
+
+The result is grammatical, identical for a given note and target, and never asserts anything that was not supplied. **What it cannot do is describe the specific incident** — an abuse desk reading it learns the category, the account and your reply address, not what happened. If a report needs to describe the incident, the note pack has to supply pre-written text with no slots, or manual entry has to come back.
 
 ## Setup
 
@@ -52,7 +65,7 @@ Optional:
 | `DATA_DIR` | `./data` | SQLite location |
 | `PORT` | `10000` | Health server port |
 
-`GMAIL_EXTRA_ACCOUNTS_JSON` example:
+No environment variable existed only to support manual reports, so this revision adds and removes none. `GMAIL_EXTRA_ACCOUNTS_JSON` example:
 
 ```json
 [
@@ -81,11 +94,12 @@ The bot is private to `ADMIN_IDS` and ignores group chats.
 1. Send `/start` and choose **Telegram X** or **WhatsApp X**.
 2. Enter the target: `@username` or `https://t.me/...` for Telegram; international format starting with `+` for WhatsApp.
 3. Pick a category, then a note from the approved 30-note pack.
-4. Answer the incident-field prompts. State only what you actually know; put "unknown" where you are unsure. Each field accepts 1–1500 characters.
-5. Optionally attach up to four JPEG/PNG/PDF files (8 MB total), then `/preview`.
-6. Review the exact recipients, sender list, subject, body and attachments, then **Confirm and send**.
+4. The exact message is shown immediately: destination, all senders, subject and body.
+5. Press **Confirm and send**, or **Cancel**.
 
-Commands: `/start` `/settings` `/preview` `/status` `/cancel` `/clearfiles` `/delete` `/help`.
+Commands: `/start` `/settings` `/status` `/cancel` `/delete` `/help`. `/preview` and `/clearfiles` no longer exist; a note is previewed the moment you pick it.
+
+Text or files sent to the chat during a case are not used. Only the note, the target and your sender list determine what is emailed.
 
 `/settings` lists every configured sender, both report destinations and any configuration warnings.
 
@@ -93,21 +107,23 @@ Commands: `/start` `/settings` `/preview` `/status` `/cancel` `/clearfiles` `/de
 
 - A report is submitted from **all configured senders at once**, to the destination for the chosen platform. Ten senders means ten sends per report.
 - The email's `Reply-To` is the first sender, so replies land somewhere you read.
+- Each message is plain text with no attachments.
 - `submitted` means Gmail accepted the send request. It is **not** proof of delivery, inbox placement or platform action. Check Gmail Sent, replies and bounce notices yourself.
 - An ambiguous outcome is recorded as `unknown` and **never retried automatically** — a crash or timeout must never silently repeat a report.
 - A case can only be sent once; the confirm claim is atomic, so double-tapping cannot double-send.
 
 ## Risks to understand before sending
 
+- **The report cannot describe the incident.** With incident slots dropped, every report for a given note and target is the same text. Ten senders mailing an identical, detail-free allegation is weak at best and looks automated at worst.
 - **Gmail quotas are per account.** A consumer Gmail account can send roughly 500 recipients a day (Google Workspace around 2,000). Ten accounts gives ten separate quotas, not one large one. Sending close to the limit can suspend an account.
 - **Identical messages from many accounts look like abuse.** Ten accounts emailing the same platform the same text at the same second is a classic spam signature. Platforms and Google both rate-limit, silently drop, or block such traffic, and accounts can be suspended.
 - **Abuse desks rate-limit submissions.** Telegram and WhatsApp accept user reports primarily through their in-app reporting flows; unsolicited bulk email from new addresses is frequently filtered before a human sees it. Volume is not the same as effect.
 - **Each refresh token can expire.** A Google OAuth app left in **Testing** normally issues refresh tokens that expire after seven days. Move the app to **In production** and re-authorise, or repeat authorisation when it lapses.
-- **This sends real allegations to real platforms.** Only submit accounts you genuinely believe violated policy, with evidence you are authorised to share. Do not use it to harass, mass-flag, or target someone you merely dislike.
+- **This sends real allegations to real platforms.** Only submit accounts you genuinely believe violated policy. Do not use it to harass, mass-flag, or target someone you merely dislike.
 
 ## Storage
 
-`DATA_DIR` holds `kana-notes.db` (SQLite): the latest case per owner, the send ledger, and the Telegram poll offset. On Render's free plan the filesystem is ephemeral, so cases and the ledger are lost on every deploy and the service may sleep, interrupting polling. For durability use a paid service with a disk and set `DATA_DIR` to the mount path.
+`DATA_DIR` holds `kana-notes.db` (SQLite): the latest case per owner, the send ledger, and the Telegram poll offset. Cases no longer store incident answers or attachments — only the note number, target, composed subject and body. On Render's free plan the filesystem is ephemeral, so cases and the ledger are lost on every deploy and the service may sleep, interrupting polling. For durability use a paid service with a disk and set `DATA_DIR` to the mount path.
 
 `/delete` removes the latest local case but keeps the send records, so a deletion cannot be used to re-send the same report.
 
