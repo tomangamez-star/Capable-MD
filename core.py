@@ -68,15 +68,15 @@ class Config:
         for value in self.live.values():
             if value:
                 email(value)
-        if self.test_email:
-            self.test_email = email(self.test_email)
-            self.validate_test()
+        # Optional test routing must never prevent the Telegram service booting.
+        # Validate only when a test verification/send is explicitly requested.
         self.data_dir = Path(os.environ.get('DATA_DIR', './data'))
         self.initial_test = os.environ.get('SEND_MODE', 'test') != 'live'
 
     def validate_test(self):
         if not self.test_email:
             raise ValueError('Set TEST_RECIPIENT_EMAIL to an inbox you control.')
+        self.test_email = email(self.test_email)
         host = self.test_email.rsplit('@', 1)[1].lower()
         forbidden = ('telegram.org', 'whatsapp.com', 'whatsapp.net')
         if any(host == x or host.endswith('.' + x) for x in forbidden):
