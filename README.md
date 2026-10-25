@@ -74,7 +74,9 @@ No environment variable existed only to support manual reports, so this revision
 ]
 ```
 
-Entries may also carry their own `client_id` / `client_secret` when the senders belong to different Google Cloud projects. Duplicate addresses and entries with no `refresh_token` are skipped with a warning shown in `/settings`. More than ten senders uses the first ten.
+Entries may also carry their own `client_id` / `client_secret` when the senders belong to different Google Cloud projects. A blank or whitespace-only override counts as absent and falls back to the shared client. Duplicate addresses and entries with no `refresh_token` are skipped with a warning shown in `/settings`. More than ten senders uses the first ten.
+
+**Each entry needs a refresh token minted for the account named beside it.** A token issued to a different address, or one pasted into every entry, authorizes nothing except its own address — which is why `/settings` reports how many *distinct* tokens are configured.
 
 ### 3. Run
 
@@ -101,7 +103,22 @@ Commands: `/start` `/settings` `/status` `/cancel` `/delete` `/help`. `/preview`
 
 Text or files sent to the chat during a case are not used. Only the note, the target and your sender list determine what is emailed.
 
-`/settings` lists every configured sender, both report destinations and any configuration warnings.
+`/settings` lists every configured sender, both report destinations, any configuration warnings, and a diagnostics block: each sender's token presence and length, how many *distinct* refresh tokens exist, and whether the shared `GMAIL_CLIENT_ID` is set. No token value is ever printed.
+
+## When a sender reports `auth_failed`
+
+`auth_failed` means Google refused the refresh token **before** anything was submitted, so nothing was sent from that address. The reason printed after the address is Google's own error text, and the three common ones need three different repairs:
+
+| Google reason | What it means | Repair |
+|---|---|---|
+| `invalid_grant` — *Token has been expired or revoked* | The token is dead: expired (7 days in **Testing**), revoked by the user or by a password change, or never real | Re-run the OAuth flow for **that** address and replace its `refresh_token` |
+| `invalid_client` — *Unauthorized* / *The OAuth client was not found* | That sender's `client_id` / `client_secret` is wrong, or blank while no shared one is set | Fix the credentials, or remove the entry's own `client_id` so the shared pair applies |
+| `unauthorized_client` | The token was minted by a different OAuth client than the one now presented | Re-authorize that address against the client in `GMAIL_CLIENT_ID` |
+| `invalid_scope` / `access_denied` | Consent was granted without `gmail.send`, or with an extra scope | Re-consent with only `https://www.googleapis.com/auth/gmail.send` |
+
+If **every** sender fails, suspect the shared client (`GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET`). If **exactly the extras** fail while sender #1 works, the shared client is fine and the extras' tokens or their own overrides are the problem. If one failure reason repeats verbatim across unrelated addresses, those entries are not independent — check `/settings` for a repeated token.
+
+A sender that could not be reached because Google never answered is recorded as `unknown`, not `auth_failed`: that is a network problem, not a credential one, and the report is not retried.
 
 ## Sending behaviour
 
@@ -109,6 +126,7 @@ Text or files sent to the chat during a case are not used. Only the note, the ta
 - The email's `Reply-To` is the first sender, so replies land somewhere you read.
 - Each message is plain text with no attachments.
 - `submitted` means Gmail accepted the send request. It is **not** proof of delivery, inbox placement or platform action. Check Gmail Sent, replies and bounce notices yourself.
+- A sender that fails authorization is reported as `auth_failed` **with Google's own reason**, so a dead token can be told apart from a wrong client id without reading Render logs.
 - An ambiguous outcome is recorded as `unknown` and **never retried automatically** — a crash or timeout must never silently repeat a report.
 - A case can only be sent once; the confirm claim is atomic, so double-tapping cannot double-send.
 
@@ -118,7 +136,7 @@ Text or files sent to the chat during a case are not used. Only the note, the ta
 - **Gmail quotas are per account.** A consumer Gmail account can send roughly 500 recipients a day (Google Workspace around 2,000). Ten accounts gives ten separate quotas, not one large one. Sending close to the limit can suspend an account.
 - **Identical messages from many accounts look like abuse.** Ten accounts emailing the same platform the same text at the same second is a classic spam signature. Platforms and Google both rate-limit, silently drop, or block such traffic, and accounts can be suspended.
 - **Abuse desks rate-limit submissions.** Telegram and WhatsApp accept user reports primarily through their in-app reporting flows; unsolicited bulk email from new addresses is frequently filtered before a human sees it. Volume is not the same as effect.
-- **Each refresh token can expire.** A Google OAuth app left in **Testing** normally issues refresh tokens that expire after seven days. Move the app to **In production** and re-authorise, or repeat authorisation when it lapses.
+- **Each refresh token can expire.** A Google OAuth app left in **Testing** normally issues refresh tokens that expire after seven days, and all ten senders will lapse at once. Move the app to **In production** (OAuth consent screen → *Publish app*) and re-authorise every sender, or repeat authorisation each time it lapses. Tokens are also revoked when that Google account's password changes or the user removes access.
 - **This sends real allegations to real platforms.** Only submit accounts you genuinely believe violated policy. Do not use it to harass, mass-flag, or target someone you merely dislike.
 
 ## Storage

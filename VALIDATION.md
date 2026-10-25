@@ -1,8 +1,8 @@
 # Validation
 
-KANA NOTES, revision removing every manual-report path so the only report is one of the 30 shipped notes.
+KANA NOTES, revision surfacing Google's per-sender authorization reason instead of a bare `auth_failed`.
 
-**Test result: 33 tests passed** (`python -m unittest discover -s tests`). Python compilation passes for `app.py`, `core.py`, `gmail_mail.py` and `tests/test_bot.py`.
+**Test result: 43 tests passed** (`python -m unittest discover -s tests`). Python compilation passes for `app.py`, `core.py`, `gmail_mail.py` and `tests/test_bot.py`.
 
 ## What the suite covers
 
@@ -18,9 +18,23 @@ Original report pack bytes are compared against the preserved original ZIP, so t
 
 **Transport.** Mocked Gmail: `submitted` / `rejected` / `unknown` outcomes and `AuthError` on a failed token refresh.
 
+**Authorization diagnosis.** Google's reason survives to the operator. `AuthError` carries `reason`; `reason_from` handles both the OAuth envelope (`error` + `error_description`) and the Gmail API envelope (`error.code` with `error.errors[].reason`). A regression test pins the original defect: `token()` must not catch its own `AuthError` and blank the reason, so an `invalid_grant` body still reaches the caller intact, and so does `invalid_client`. A token endpoint that cannot be reached raises `TransportError`, and `send()` records that as `unknown` — never `auth_failed`, because a network failure is not a credential failure. A blank per-account `client_id` / `client_secret` is treated as absent and falls back to the shared client; a non-blank one is used. At the bot level, a send where every sender raises `AuthError` must show Google's reason in the status message, count the failures, and store each sender's reason in the ledger. `/settings` must report `Distinct refresh tokens: N` while printing no token value, and `Config.diagnostics()` must flag one token reused across all senders and a blank shared client id.
+
 ## Not performed
 
-Google and Telegram calls were mocked throughout. **No real OAuth authorisation, email submission, abuse report or Render deployment was performed.** No message was delivered to any platform.
+Google and Telegram calls were mocked throughout. **No real OAuth authorisation, email submission, abuse report or Render deployment was performed.** No message was delivered to any platform. The actual reason a real sender fails can only be confirmed by reading the reason this revision now prints, or by inspecting the Google Cloud project directly — the suite cannot reach Google.
+
+## Changed in this revision
+
+| File | Change |
+|---|---|
+| `gmail_mail.py` | `AuthError` carries Google's `reason`; new `TransportError`; `reason_from()` parses both Google error envelopes; `token()` raises outside its `try` so the reason is never re-wrapped; blank per-account client overrides fall back to the shared client; `send()` returns the refusal reason |
+| `core.py` | `Config.diagnostics()`: offline, secret-free summary of token presence, distinct-token count, and shared client status; blank shared `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` becomes a warning instead of silence |
+| `app.py` | `auth_failed` records Google's reason per sender; the status message adds a result tally and a repair hint; `/settings` prints the diagnostics block |
+| `tests/test_bot.py` | 33 → 43 tests; new coverage listed above |
+| `README.md`, `VALIDATION.md` | Document the new output, the reason table and the 7-day testing-mode expiry |
+
+No environment variable was added or removed, and `render.yaml` is unchanged.
 
 ## Removed in this revision
 

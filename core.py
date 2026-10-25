@@ -67,6 +67,11 @@ class Config:
             raise ValueError('Set TELEGRAM_BOT_TOKEN and ADMIN_IDS.')
         self.client_id = os.environ.get('GMAIL_CLIENT_ID', '')
         self.client_secret = os.environ.get('GMAIL_CLIENT_SECRET', '')
+        if not self.client_id.strip() or not self.client_secret.strip():
+            # Not fatal: per-account client_id/client_secret can still work.
+            self.warnings.append(
+                'GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET are blank; only senders carrying their own '
+                'client_id and client_secret can authorize.')
 
         raw = []
         if os.environ.get('GMAIL_SENDER') and os.environ.get('GMAIL_REFRESH_TOKEN'):
@@ -125,6 +130,45 @@ class Config:
     def senders(self):
         """Every configured sender, used for every report type."""
         return list(self.accounts)
+
+    def diagnostics(self):
+        """Describe how the senders are wired, without printing any secret.
+
+        Offline and read-only. It answers the one question a wall of identical
+        ``auth_failed`` lines cannot: whether the senders share one token, one
+        OAuth client, or a blank value - any of which produces the same generic
+        refusal from Google.
+        """
+        if not self.accounts:
+            return 'No sender configured.'
+        lengths, values = {}, set()
+        for a in self.accounts:
+            token = (a.get('refresh_token') or '').strip()
+            values.add(token)
+            lengths[len(token)] = lengths.get(len(token), 0) + 1
+        lines = [f'{len(self.accounts)} sender(s) configured; every report uses all of them.', '']
+        for i, a in enumerate(self.accounts, 1):
+            token = (a.get('refresh_token') or '').strip()
+            if not token:
+                state = 'NO REFRESH TOKEN - cannot work'
+            elif len(token) < 20:
+                state = f'token only {len(token)} chars - not a real refresh token'
+            else:
+                state = f'token {len(token)} chars'
+            own = 'own client_id' if (a.get('client_id') or '').strip() else 'shared client_id'
+            lines.append(f'{i}. {a["email"]} - {state}, {own}')
+        lines += ['',
+                  'Distinct refresh tokens: ' + str(len(values)) +
+                  ('' if len(values) == len(self.accounts) else
+                   ' (should equal the sender count - fewer means one token was pasted more than once)'),
+                  'Token lengths: ' + ', '.join(f'{k} chars x{v}' for k, v in sorted(lengths.items())) +
+                  (' - all identical length, consistent with one token reused' if len(set(lengths)) == 1 and len(values) == 1 else ''),
+                  'Shared GMAIL_CLIENT_ID: ' + ('set' if self.client_id.strip() else
+                                                'BLANK - only senders with their own client_id can work')]
+        override = sum(1 for a in self.accounts if (a.get('client_id') or '').strip())
+        if override:
+            lines.append(f'Senders carrying their own client_id: {override}')
+        return '\n'.join(lines)
 
 
 class Notes:

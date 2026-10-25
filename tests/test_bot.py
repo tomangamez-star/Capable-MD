@@ -5,7 +5,8 @@ from core import Config, Notes, Store, MECHANICAL, target
 from app import Bot, button
 import app as app_module
 import gmail_mail
-from gmail_mail import Gmail, raw_message, AuthError
+import aiohttp
+from gmail_mail import Gmail, raw_message, AuthError, TransportError, reason_from
 
 SENDERS = [{'email': f'sender{i}@gmail.com', 'refresh_token': f'token{i}'} for i in range(1, 11)]
 
@@ -174,6 +175,32 @@ class NoGatingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 Config()
 
+    def test_diagnostics_counts_distinct_tokens_without_leaking_them(self):
+        with patch.dict(os.environ, env(), clear=True):
+            cfg = Config()
+        text = cfg.diagnostics()
+        self.assertIn('Distinct refresh tokens: 10', text)
+        self.assertIn('Shared GMAIL_CLIENT_ID: set', text)
+        for s in SENDERS:
+            self.assertNotIn(s['refresh_token'], text)
+
+    def test_diagnostics_flags_one_token_reused_for_every_sender(self):
+        same = [{'email': f's{i}@gmail.com', 'refresh_token': 'one-single-token-value-padded'}
+                for i in range(2, 11)]
+        with patch.dict(os.environ, env(GMAIL_REFRESH_TOKEN='one-single-token-value-padded',
+                                        GMAIL_EXTRA_ACCOUNTS_JSON=json.dumps(same)), clear=True):
+            cfg = Config()
+        text = cfg.diagnostics()
+        self.assertIn('Distinct refresh tokens: 1', text)
+        self.assertIn('pasted more than once', text)
+
+    def test_blank_shared_client_warns_but_never_crashes(self):
+        with patch.dict(os.environ, env(GMAIL_CLIENT_ID='', GMAIL_CLIENT_SECRET=''), clear=True):
+            cfg = Config()
+        self.assertEqual(len(cfg.senders()), 10)
+        self.assertTrue(any('blank' in w for w in cfg.warnings))
+        self.assertIn('BLANK', cfg.diagnostics())
+
 
 class BotTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
@@ -188,9 +215,11 @@ class BotTests(unittest.IsolatedAsyncioTestCase):
         self.bot.tg = tg
         class Mail:
             def __init__(self):
-                self.sent = []; self.result = 'submitted'; self.active = 0; self.peak = 0
+                self.sent = []; self.result = 'submitted'; self.active = 0; self.peak = 0; self.error = None
             async def send(self, *args):
                 self.sent.append(args)
+                if self.error:
+                    raise self.error
                 self.active += 1; self.peak = max(self.peak, self.active)
                 await asyncio.sleep(0); self.active -= 1
                 return self.result, 'mock-id'
@@ -316,32 +345,121 @@ class BotTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('Senders: 10/10', text)
         self.assertIn('sender1@gmail.com', text)
         self.assertIn('abuse@telegram.org', text)
+        # Diagnostics must state how many DISTINCT tokens exist, without leaking one.
+        self.assertIn('Distinct refresh tokens: 10', text)
+        self.assertNotIn('token1', text)
+
+    async def test_auth_failure_reason_is_shown_per_sender(self):
+        """A bare 'auth_failed' is not actionable: Google's own reason must appear."""
+        phase, d = await self.pick_note('telegram', 1)
+        self.bot.mail.error = AuthError('refused', reason='invalid_grant: Token has been expired or revoked.')
+        await self.cb('send:' + d['id'])
+        text = self.messages[-1][0]
+        self.assertIn('invalid_grant', text)
+        self.assertIn('expired or revoked', text)
+        self.assertIn('10 auth_failed', text)
+        # Every failing sender keeps its own reason in the ledger.
+        self.assertTrue(all(r[2] == 'invalid_grant: Token has been expired or revoked.'
+                            for r in self.bot.store.attempts(d['id'])))
 
 
 class GmailTests(unittest.IsolatedAsyncioTestCase):
+    class R:
+        def __init__(self, s, d): self.status = s; self.d = d
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): pass
+        async def json(self): return self.d
+
+    class H:
+        def __init__(self):
+            self.auth = 200; self.status = 200; self.timeout = False
+            self.token_body = None; self.send_body = None
+            self.token_down = False; self.token_data = {}
+
+        def post(self, url, **kw):
+            R = GmailTests.R
+            if url.endswith('/token'):
+                self.token_data = kw.get('data', {})
+                if self.token_down:
+                    raise aiohttp.ClientError('down')
+                body = self.token_body if self.token_body is not None else (
+                    {'access_token': 'mock'} if self.auth == 200 else {'error': 'invalid_grant'})
+                return R(self.auth, body)
+            if self.timeout:
+                raise asyncio.TimeoutError()
+            body = self.send_body if self.send_body is not None else (
+                {'id': 'mock-id'} if self.status == 200 else {})
+            return R(self.status, body)
+
+    class C:
+        client_id = 'id'
+        client_secret = 'secret'
+
+    def gmail(self):
+        h = self.H()
+        return h, Gmail(h, self.C()), {'email': 'me@gmail.com', 'refresh_token': 'fake'}
+
     async def test_transport_auth_and_errors(self):
-        class R:
-            def __init__(self, s, d): self.status = s; self.d = d
-            async def __aenter__(self): return self
-            async def __aexit__(self, *a): pass
-            async def json(self): return self.d
-        class H:
-            def __init__(self): self.auth = 200; self.status = 200; self.timeout = False
-            def post(self, url, **kw):
-                if url.endswith('/token'):
-                    return R(self.auth, {'access_token': 'mock'})
-                if self.timeout: raise asyncio.TimeoutError()
-                return R(self.status, {'id': 'mock-id'} if self.status == 200 else {})
-        class C: client_id = 'id'; client_secret = 'secret'
-        h = H(); g = Gmail(h, C()); a = {'email': 'me@gmail.com', 'refresh_token': 'fake'}
+        h, g, a = self.gmail()
         self.assertEqual((await g.send(a, 'test@example.com', 'T', 'B', 'id'))[0], 'submitted')
         h.status = 403
-        self.assertEqual((await g.send(a, 'test@example.com', 'T', 'B', 'id'))[0], 'rejected')
+        h.send_body = {'error': {'code': 403, 'message': 'Delegation denied',
+                                 'errors': [{'reason': 'forbidden'}]}}
+        status, detail = await g.send(a, 'test@example.com', 'T', 'B', 'id')
+        self.assertEqual(status, 'rejected')
+        self.assertIn('forbidden', detail)
         h.timeout = True
         self.assertEqual((await g.send(a, 'test@example.com', 'T', 'B', 'id'))[0], 'unknown')
         h.auth = 400
         with self.assertRaises(AuthError):
             await g.send(a, 'test@example.com', 'T', 'B', 'id')
+
+    async def test_google_reason_is_never_swallowed(self):
+        """Regression: the old token() caught its own AuthError and blanked the reason."""
+        h, g, a = self.gmail()
+        h.auth = 400
+        h.token_body = {'error': 'invalid_grant',
+                        'error_description': 'Token has been expired or revoked.'}
+        with self.assertRaises(AuthError) as ctx:
+            await g.token(a)
+        self.assertIn('invalid_grant', ctx.exception.reason)
+        self.assertIn('expired or revoked', ctx.exception.reason)
+
+    async def test_invalid_client_reason_is_kept(self):
+        h, g, a = self.gmail()
+        h.auth = 401
+        h.token_body = {'error': 'invalid_client', 'error_description': 'Unauthorized'}
+        with self.assertRaises(AuthError) as ctx:
+            await g.token(a)
+        self.assertIn('invalid_client', ctx.exception.reason)
+
+    async def test_token_endpoint_down_is_unknown_not_auth_failure(self):
+        """Google not answering is not a credential problem and must not read as one."""
+        h, g, a = self.gmail()
+        h.token_down = True
+        status, _ = await g.send(a, 'test@example.com', 'T', 'B', 'id')
+        self.assertEqual(status, 'unknown')
+        with self.assertRaises(TransportError):
+            await g.token(a)
+
+    async def test_blank_override_falls_back_to_shared_client(self):
+        h, g, a = self.gmail()
+        await g.token(dict(a, client_id='   ', client_secret=''))
+        self.assertEqual(h.token_data['client_id'], 'id')
+        self.assertEqual(h.token_data['client_secret'], 'secret')
+
+    async def test_per_account_client_is_used_when_present(self):
+        h, g, a = self.gmail()
+        await g.token(dict(a, client_id='own-id', client_secret='own-secret'))
+        self.assertEqual(h.token_data['client_id'], 'own-id')
+        self.assertEqual(h.token_data['client_secret'], 'own-secret')
+
+    def test_reason_from_covers_both_envelopes(self):
+        self.assertIn('invalid_grant',
+                      reason_from(400, {'error': 'invalid_grant', 'error_description': 'Bad'}))
+        self.assertEqual(reason_from(400, {}), 'HTTP 400')
+        self.assertIn('forbidden', reason_from(403, {'error': {
+            'code': 403, 'errors': [{'reason': 'forbidden'}], 'message': 'Denied'}}))
 
 
 if __name__ == '__main__':

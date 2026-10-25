@@ -64,6 +64,7 @@ class Bot:
                  *(f"  {k.title()}: {v}" for k, v in self.cfg.reporting.items())]
         if self.cfg.warnings:
             lines += ['', 'Warnings:'] + ['  ' + w for w in self.cfg.warnings]
+        lines += ['', self.cfg.diagnostics()]
         await self.say(uid, '\n'.join(lines), [
             [button('Home', 'home')]])
 
@@ -107,8 +108,10 @@ class Bot:
         async def one(a):
             try:
                 status, mid = await self.mail.send(a, destination, d['subject'], d['body'], d['id'])
-            except AuthError:
-                status, mid = 'auth_failed', ''
+            except AuthError as exc:
+                # Keep Google's own reason: "expired or revoked", "invalid_client"
+                # and "unauthorized_client" need three different repairs.
+                status, mid = 'auth_failed', getattr(exc, 'reason', '') or str(exc)
             except Exception:
                 status, mid = 'unknown', ''
             self.store.attempt(d['id'], a['email'], status, mid)
@@ -124,9 +127,20 @@ class Bot:
             await self.say(uid, 'No case yet. Use /start.')
             return
         results = self.store.attempts(d['id'])
+        tally = {}
+        for _a, _s, _m in results:
+            tally[_s] = tally.get(_s, 0) + 1
+        summary = 'Results: ' + ', '.join(f'{v} {k}' for k, v in sorted(tally.items()))
+        if tally.get('auth_failed'):
+            summary += ('\n' + str(tally['auth_failed']) + ' sender(s) could not authorize. The reason after '
+                        "each address is Google's own error: expired_or_revoked means re-run the OAuth "
+                        'flow for that address, invalid_client means its client_id/client_secret is '
+                        'wrong, unauthorized_client means the OAuth app does not cover it. /settings '
+                        'shows whether the tokens are distinct.')
         await self.say(uid, f"Case {d['id']} · {d['platform'].title()}\nState: {phase}\n"
                        f"To: {d.get('recipient', 'not previewed')}\n" +
                        '\n'.join(f'{a}: {s}' + (f' · {mid}' if mid else '') for a,s,mid in results) +
+                       '\n' + summary +
                        '\n\nsubmitted = Gmail accepted the send request, not verified delivery or review. Check Gmail Sent, replies and bounce notices yourself. Uncertain sends are never automatically retried.')
 
     async def handle(self, update):
