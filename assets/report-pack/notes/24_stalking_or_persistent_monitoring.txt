@@ -1,0 +1,16 @@
+Stalking or Persistent Monitoring
+DRAFT FOR REVIEW
+
+Subject: Request for review: Stalking or Persistent Monitoring — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a pattern of unwanted monitoring or persistent contact. Between {{start_date}} and {{end_date}}, this account {{specific_repeated_behaviors}}. My boundaries or requests to stop were {{boundaries_or_stop_requests}}, and the response was {{observed_response}}. Facts suggesting monitoring rather than coincidence are {{specific_supporting_facts}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

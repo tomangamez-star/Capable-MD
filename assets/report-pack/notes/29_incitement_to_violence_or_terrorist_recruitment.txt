@@ -1,0 +1,16 @@
+Incitement to Violence or Terrorist Recruitment
+DRAFT FOR REVIEW
+
+Subject: Request for review: Incitement to Violence or Terrorist Recruitment — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting content that appears to encourage violence or recruit people for violent activity. This account sent {{brief_non_operational_description}} in {{chat_context}} on {{incident_date}}. The specific call to harm or recruitment conduct was {{specific_observed_call_or_conduct}}. My concern is based on that conduct, not a person’s religion, ethnicity or peaceful political views.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

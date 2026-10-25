@@ -1,0 +1,16 @@
+Charity or Emergency Donation Scam
+DRAFT FOR REVIEW
+
+Subject: Request for review: Charity or Emergency Donation Scam — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a suspected deceptive donation appeal. This account requested {{donation_request}} for {{claimed_cause_or_emergency}} while claiming {{claimed_affiliation}}. My concern is based on {{specific_false_claim_or_verification_result}}. I am not treating an unverified appeal alone as proof of fraud.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

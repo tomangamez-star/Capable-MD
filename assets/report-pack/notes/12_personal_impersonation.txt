@@ -1,0 +1,16 @@
+Personal Impersonation
+DRAFT FOR REVIEW
+
+Subject: Request for review: Personal Impersonation — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting suspected impersonation of {{person_impersonated}}. This account used {{name_photo_or_identity_claim}} and communicated {{specific_misleading_representation}}. My relationship to the person is {{reporter_relationship}}, and my basis for disputing the claimed identity is {{basis_for_identity_concern}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

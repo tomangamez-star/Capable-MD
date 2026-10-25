@@ -1,0 +1,16 @@
+Verification Code Theft Attempt
+DRAFT FOR REVIEW
+
+Subject: Request for review: Verification Code Theft Attempt — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting an attempt to obtain a private verification code. This account asked for {{type_of_code_without_the_code_itself}} on the pretext of {{stated_pretext}}. Its relevant request was {{quoted_request_without_secrets}}. I did not authorize access to my account, and the observed outcome was {{observed_outcome}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

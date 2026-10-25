@@ -1,0 +1,16 @@
+Weapons Sale or Violent Crime Solicitation
+DRAFT FOR REVIEW
+
+Subject: Request for review: Weapons Sale or Violent Crime Solicitation — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a weapons offer or solicitation that raises a safety concern. This account communicated {{non_operational_description_of_offer_or_solicitation}} on {{incident_date}}. The specific threat or indication of prohibited activity was {{observed_safety_indicator}}. I am not attaching weapon-use instructions or claiming an unobserved transaction occurred.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

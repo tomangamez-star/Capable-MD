@@ -1,0 +1,623 @@
+{
+  "name": "KANA NOTES",
+  "schema_version": 1,
+  "pack_status": "draft_for_review",
+  "templates": [
+    {
+      "id": "wa_01_payment_scam",
+      "platform": "whatsapp",
+      "display_name": "Payment Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Payment Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected payment scam involving this account. The account requested payment for {{promised_item_or_service}} on {{payment_request_date}}. After {{what_I_paid_or_was_asked_to_pay}}, I observed {{specific_misrepresentation_or_non_delivery}}. My basis for suspecting deception is {{basis_for_suspicion}}; I cannot establish intent from non-delivery alone.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "basis_for_suspicion",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "payment_request_date",
+        "promised_item_or_service",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_misrepresentation_or_non_delivery"
+      ],
+      "source_file": "notes/01_payment_scam.txt"
+    },
+    {
+      "id": "wa_02_investment_scam",
+      "platform": "whatsapp",
+      "display_name": "Investment Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Investment Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected investment scam. This account promoted {{investment_offer}} and claimed {{exact_return_or_guarantee_claim}}. It asked for {{payment_or_personal_information_requested}}. The specific inconsistency or deceptive conduct I observed was {{observed_inconsistency}}. Any loss I personally experienced was {{actual_loss_or_none}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "actual_loss_or_none",
+        "evidence_summary_or_explicitly_unavailable",
+        "exact_return_or_guarantee_claim",
+        "incident_dates_and_timezone",
+        "investment_offer",
+        "observed_inconsistency",
+        "payment_or_personal_information_requested",
+        "reporter_contact",
+        "reporter_relationship_to_incident"
+      ],
+      "source_file": "notes/02_investment_scam.txt"
+    },
+    {
+      "id": "wa_03_job_offer_scam",
+      "platform": "whatsapp",
+      "display_name": "Job Offer Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Job Offer Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected fraudulent job offer. This account offered {{job_or_recruitment_offer}} while claiming to represent {{claimed_employer}}. It requested {{fees_documents_or_other_action_requested}}. I suspect deception because {{specific_verifiable_reason}}, rather than simply because the contact was unsolicited.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "claimed_employer",
+        "evidence_summary_or_explicitly_unavailable",
+        "fees_documents_or_other_action_requested",
+        "incident_dates_and_timezone",
+        "job_or_recruitment_offer",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_verifiable_reason"
+      ],
+      "source_file": "notes/03_job_offer_scam.txt"
+    },
+    {
+      "id": "wa_04_advance_fee_scam",
+      "platform": "whatsapp",
+      "display_name": "Advance Fee Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Advance Fee Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected advance-fee scheme. This account promised {{promised_benefit}} but required {{upfront_payment_requested}} before providing it. The sequence of requests was {{observed_sequence}}. My reason for believing the promise was deceptive is {{specific_basis}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "observed_sequence",
+        "promised_benefit",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_basis",
+        "upfront_payment_requested"
+      ],
+      "source_file": "notes/04_advance_fee_scam.txt"
+    },
+    {
+      "id": "wa_05_prize_or_giveaway_scam",
+      "platform": "whatsapp",
+      "display_name": "Prize or Giveaway Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Prize or Giveaway Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected prize or giveaway scam. This account claimed I had won {{claimed_prize}} through {{claimed_organizer}} and requested {{money_credentials_or_information_requested}}. The claim appears misleading because {{specific_inconsistency_or_verification_result}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "claimed_organizer",
+        "claimed_prize",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "money_credentials_or_information_requested",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_inconsistency_or_verification_result"
+      ],
+      "source_file": "notes/05_prize_or_giveaway_scam.txt"
+    },
+    {
+      "id": "wa_06_romance_scam",
+      "platform": "whatsapp",
+      "display_name": "Romance Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Romance Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting suspected financial deception connected to an online personal relationship. This account represented itself as {{claimed_identity_or_relationship}} and requested {{financial_request}} using {{stated_reason}}. The particular facts supporting my concern are {{observed_deception_or_inconsistencies}}. I distinguish these facts from assumptions about the person’s identity.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "claimed_identity_or_relationship",
+        "evidence_summary_or_explicitly_unavailable",
+        "financial_request",
+        "incident_dates_and_timezone",
+        "observed_deception_or_inconsistencies",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "stated_reason"
+      ],
+      "source_file": "notes/06_romance_scam.txt"
+    },
+    {
+      "id": "wa_07_charity_or_emergency_donation_scam",
+      "platform": "whatsapp",
+      "display_name": "Charity or Emergency Donation Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Charity or Emergency Donation Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected deceptive donation appeal. This account requested {{donation_request}} for {{claimed_cause_or_emergency}} while claiming {{claimed_affiliation}}. My concern is based on {{specific_false_claim_or_verification_result}}. I am not treating an unverified appeal alone as proof of fraud.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "claimed_affiliation",
+        "claimed_cause_or_emergency",
+        "donation_request",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_false_claim_or_verification_result"
+      ],
+      "source_file": "notes/07_charity_or_emergency_donation_scam.txt"
+    },
+    {
+      "id": "wa_08_loan_scam",
+      "platform": "whatsapp",
+      "display_name": "Loan Scam",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Loan Scam — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected loan scam. This account advertised {{loan_offer}} and required {{fee_sensitive_data_or_other_requirement}}. It made the following representation: {{relevant_claim}}. The conduct suggesting deception was {{specific_observation}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "fee_sensitive_data_or_other_requirement",
+        "incident_dates_and_timezone",
+        "loan_offer",
+        "relevant_claim",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_observation"
+      ],
+      "source_file": "notes/08_loan_scam.txt"
+    },
+    {
+      "id": "wa_09_phishing_link_or_fake_login",
+      "platform": "whatsapp",
+      "display_name": "Phishing Link or Fake Login",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Phishing Link or Fake Login — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected phishing attempt. This account sent {{defanged_link_or_domain}} while pretending to be {{claimed_service_or_sender}} and asked me to {{requested_login_or_action}}. The message was misleading because {{specific_impersonation_or_domain_mismatch}}. My interaction with it was {{what_I_did_or_did_not_do}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "claimed_service_or_sender",
+        "defanged_link_or_domain",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "requested_login_or_action",
+        "specific_impersonation_or_domain_mismatch"
+      ],
+      "source_file": "notes/09_phishing_link_or_fake_login.txt"
+    },
+    {
+      "id": "wa_10_verification_code_theft_attempt",
+      "platform": "whatsapp",
+      "display_name": "Verification Code Theft Attempt",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Verification Code Theft Attempt — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting an attempt to obtain a private verification code. This account asked for {{type_of_code_without_the_code_itself}} on the pretext of {{stated_pretext}}. Its relevant request was {{quoted_request_without_secrets}}. I did not authorize access to my account, and the observed outcome was {{observed_outcome}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "observed_outcome",
+        "quoted_request_without_secrets",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "stated_pretext",
+        "type_of_code_without_the_code_itself"
+      ],
+      "source_file": "notes/10_verification_code_theft_attempt.txt"
+    },
+    {
+      "id": "wa_11_suspected_account_takeover",
+      "platform": "whatsapp",
+      "display_name": "Suspected Account Takeover",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Suspected Account Takeover — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting messages from an account that may have been taken over. The account was previously associated with {{relationship_to_known_account_holder}}, but on {{change_observed_date}} it began {{specific_unusual_activity}}. My basis for suspecting unauthorized control is {{confirmation_or_other_evidence}}. Please distinguish a potentially compromised account from wrongdoing by its rightful owner.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "change_observed_date",
+        "confirmation_or_other_evidence",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "relationship_to_known_account_holder",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_unusual_activity"
+      ],
+      "source_file": "notes/11_suspected_account_takeover.txt"
+    },
+    {
+      "id": "wa_12_personal_impersonation",
+      "platform": "whatsapp",
+      "display_name": "Personal Impersonation",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Personal Impersonation — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting suspected impersonation of {{person_impersonated}}. This account used {{name_photo_or_identity_claim}} and communicated {{specific_misleading_representation}}. My relationship to the person is {{reporter_relationship}}, and my basis for disputing the claimed identity is {{basis_for_identity_concern}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "basis_for_identity_concern",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "name_photo_or_identity_claim",
+        "person_impersonated",
+        "reporter_contact",
+        "reporter_relationship",
+        "reporter_relationship_to_incident",
+        "specific_misleading_representation"
+      ],
+      "source_file": "notes/12_personal_impersonation.txt"
+    },
+    {
+      "id": "wa_13_business_or_organization_impersonation",
+      "platform": "whatsapp",
+      "display_name": "Business or Organization Impersonation",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Business or Organization Impersonation — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting an account presenting itself as {{organization_impersonated}}. It used {{branding_or_authority_claim}} to request {{money_information_or_action_requested}}. The reason I believe it is not authorized to represent that organization is {{verification_or_specific_discrepancy}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "branding_or_authority_claim",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "money_information_or_action_requested",
+        "organization_impersonated",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "verification_or_specific_discrepancy"
+      ],
+      "source_file": "notes/13_business_or_organization_impersonation.txt"
+    },
+    {
+      "id": "wa_14_malicious_file_or_app_distribution",
+      "platform": "whatsapp",
+      "display_name": "Malicious File or App Distribution",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Malicious File or App Distribution — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting suspected distribution of a harmful file or app. This account sent or promoted {{filename_or_defanged_download_location}} as {{claimed_purpose}}. The observed security concern was {{security_warning_or_observed_behavior}}. My basis is {{observation_or_analysis_source}}; I have not assumed malware solely from an unfamiliar file. I am not attaching an executable payload.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "claimed_purpose",
+        "evidence_summary_or_explicitly_unavailable",
+        "filename_or_defanged_download_location",
+        "incident_dates_and_timezone",
+        "observation_or_analysis_source",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "security_warning_or_observed_behavior"
+      ],
+      "source_file": "notes/14_malicious_file_or_app_distribution.txt"
+    },
+    {
+      "id": "wa_15_repeated_unwanted_messages",
+      "platform": "whatsapp",
+      "display_name": "Repeated Unwanted Messages",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Repeated Unwanted Messages — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting repeated unwanted messaging by this account. Between {{start_date}} and {{end_date}}, I received {{approximate_message_count_and_pattern}}. I asked it to stop on {{stop_request_date_or_not_requested}}, after which {{subsequent_contact_or_not_applicable}}. The concern is {{specific_disruption_or_abusive_content}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "approximate_message_count_and_pattern",
+        "end_date",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_disruption_or_abusive_content",
+        "start_date",
+        "stop_request_date_or_not_requested",
+        "subsequent_contact_or_not_applicable"
+      ],
+      "source_file": "notes/15_repeated_unwanted_messages.txt"
+    },
+    {
+      "id": "wa_16_targeted_harassment_or_cyberbullying",
+      "platform": "whatsapp",
+      "display_name": "Targeted Harassment or Cyberbullying",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Targeted Harassment or Cyberbullying — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting targeted harassment directed at {{target_description}}. On {{incident_dates}}, this account sent {{relevant_messages_or_conduct}}. The pattern or context making the contact abusive was {{specific_pattern_and_context}}. My relationship to the incident is {{how_I_witnessed_or_received_it}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates",
+        "incident_dates_and_timezone",
+        "relevant_messages_or_conduct",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_pattern_and_context",
+        "target_description"
+      ],
+      "source_file": "notes/16_targeted_harassment_or_cyberbullying.txt"
+    },
+    {
+      "id": "wa_17_hate_based_abuse",
+      "platform": "whatsapp",
+      "display_name": "Hate Based Abuse",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Hate Based Abuse — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting messages targeting {{targeted_person_or_group}} based on {{characteristic_targeted}}. The relevant wording or a concise description is {{relevant_content}}. It was sent in {{chat_context}} on {{incident_dates}}. My concern relates to {{specific_abusive_or_threatening_conduct}}, not merely disagreement with an opinion.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "characteristic_targeted",
+        "chat_context",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates",
+        "incident_dates_and_timezone",
+        "relevant_content",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_abusive_or_threatening_conduct",
+        "targeted_person_or_group"
+      ],
+      "source_file": "notes/17_hate_based_abuse.txt"
+    },
+    {
+      "id": "wa_18_threats_of_physical_harm",
+      "platform": "whatsapp",
+      "display_name": "Threats of Physical Harm",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Threats of Physical Harm — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a threat of physical harm. This account communicated {{exact_threat_or_accurate_description}} against {{threatened_person_or_group}} on {{threat_date}}. The relevant context and any stated time or location are {{threat_context}}. I cannot independently determine the sender’s capability or intent; the facts I observed are {{additional_observed_facts}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "additional_observed_facts",
+        "evidence_summary_or_explicitly_unavailable",
+        "exact_threat_or_accurate_description",
+        "incident_dates_and_timezone",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "threat_context",
+        "threat_date",
+        "threatened_person_or_group"
+      ],
+      "source_file": "notes/18_threats_of_physical_harm.txt"
+    },
+    {
+      "id": "wa_19_blackmail_or_extortion",
+      "platform": "whatsapp",
+      "display_name": "Blackmail or Extortion",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Blackmail or Extortion — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a suspected extortion attempt. This account demanded {{money_action_or_benefit_demanded}} and threatened {{threatened_consequence}} if I did not comply. The demand was made on {{demand_date}}, with {{deadline_or_none}}. The actual outcome so far is {{observed_outcome}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "deadline_or_none",
+        "demand_date",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "money_action_or_benefit_demanded",
+        "observed_outcome",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "threatened_consequence"
+      ],
+      "source_file": "notes/19_blackmail_or_extortion.txt"
+    },
+    {
+      "id": "wa_20_sexual_blackmail",
+      "platform": "whatsapp",
+      "display_name": "Sexual Blackmail",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Sexual Blackmail — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a sexual-blackmail concern. This account threatened {{non_graphic_description_of_disclosure_or_harm}} unless {{demand_made}}. The message was received on {{incident_date}}. The affected person is {{relationship_to_affected_person}}. I can provide non-explicit messages documenting the threat; intimate material is not included.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "demand_made",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_date",
+        "incident_dates_and_timezone",
+        "non_graphic_description_of_disclosure_or_harm",
+        "relationship_to_affected_person",
+        "reporter_contact",
+        "reporter_relationship_to_incident"
+      ],
+      "source_file": "notes/20_sexual_blackmail.txt"
+    },
+    {
+      "id": "wa_21_nonconsensual_intimate_content",
+      "platform": "whatsapp",
+      "display_name": "Nonconsensual Intimate Content",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Nonconsensual Intimate Content — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting suspected sharing or threatened sharing of intimate content without consent. The account’s observed conduct was {{non_graphic_description_of_conduct}} on {{incident_date}}. My relationship to the affected person and basis for the consent concern are {{relationship_and_consent_basis}}. Available identifying context is {{message_reference_or_non_explicit_context}}. No intimate image or video is attached.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_date",
+        "incident_dates_and_timezone",
+        "message_reference_or_non_explicit_context",
+        "non_graphic_description_of_conduct",
+        "relationship_and_consent_basis",
+        "reporter_contact",
+        "reporter_relationship_to_incident"
+      ],
+      "source_file": "notes/21_nonconsensual_intimate_content.txt"
+    },
+    {
+      "id": "wa_22_sexual_harassment",
+      "platform": "whatsapp",
+      "display_name": "Sexual Harassment",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Sexual Harassment — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting unwanted sexual messages or conduct. This account sent {{non_graphic_description_of_messages_or_requests}} on {{incident_dates}}. The context establishing that the contact was unwanted is {{rejection_stop_request_or_other_context}}. The conduct after that was {{subsequent_conduct_or_none}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates",
+        "incident_dates_and_timezone",
+        "non_graphic_description_of_messages_or_requests",
+        "rejection_stop_request_or_other_context",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "subsequent_conduct_or_none"
+      ],
+      "source_file": "notes/22_sexual_harassment.txt"
+    },
+    {
+      "id": "wa_23_doxxing_or_disclosure_of_private_information",
+      "platform": "whatsapp",
+      "display_name": "Doxxing or Disclosure of Private Information",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Doxxing or Disclosure of Private Information — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting disclosure or threatened disclosure of private information. This account {{observed_disclosure_or_threat}} involving {{type_of_information_without_repeating_sensitive_values}}. My basis for believing disclosure was unauthorized is {{authorization_context}}. The relevant message reference and date are {{message_reference_and_date}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "authorization_context",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "message_reference_and_date",
+        "observed_disclosure_or_threat",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "type_of_information_without_repeating_sensitive_values"
+      ],
+      "source_file": "notes/23_doxxing_or_disclosure_of_private_information.txt"
+    },
+    {
+      "id": "wa_24_stalking_or_persistent_monitoring",
+      "platform": "whatsapp",
+      "display_name": "Stalking or Persistent Monitoring",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Stalking or Persistent Monitoring — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a pattern of unwanted monitoring or persistent contact. Between {{start_date}} and {{end_date}}, this account {{specific_repeated_behaviors}}. My boundaries or requests to stop were {{boundaries_or_stop_requests}}, and the response was {{observed_response}}. Facts suggesting monitoring rather than coincidence are {{specific_supporting_facts}}.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "boundaries_or_stop_requests",
+        "end_date",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "observed_response",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_repeated_behaviors",
+        "specific_supporting_facts",
+        "start_date"
+      ],
+      "source_file": "notes/24_stalking_or_persistent_monitoring.txt"
+    },
+    {
+      "id": "wa_25_suspected_trafficking_or_forced_labor",
+      "platform": "whatsapp",
+      "display_name": "Suspected Trafficking or Forced Labor",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Suspected Trafficking or Forced Labor — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting conduct that raises concerns about trafficking or forced labor. This account communicated {{non_graphic_description_of_offer_demand_or_control}} in {{context_and_date}}. The specific indicators of coercion, exploitation or restriction I observed were {{observed_indicators}}. My knowledge is limited to {{how_I_obtained_the_information}}; I cannot independently establish that trafficking occurred.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "context_and_date",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "non_graphic_description_of_offer_demand_or_control",
+        "observed_indicators",
+        "reporter_contact",
+        "reporter_relationship_to_incident"
+      ],
+      "source_file": "notes/25_suspected_trafficking_or_forced_labor.txt"
+    },
+    {
+      "id": "wa_26_child_grooming_or_exploitation_concern",
+      "platform": "whatsapp",
+      "display_name": "Child Grooming or Exploitation Concern",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Child Grooming or Exploitation Concern — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a child-safety concern involving {{relationship_to_affected_child_without_identifying_details}}. This account {{non_graphic_description_of_conduct}} on {{incident_dates}}. The basis for believing a child may be involved and the specific safety indicators are {{age_basis_and_observed_indicators}}. I am providing only non-explicit context and references, not exploitative imagery.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "age_basis_and_observed_indicators",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates",
+        "incident_dates_and_timezone",
+        "non_graphic_description_of_conduct",
+        "relationship_to_affected_child_without_identifying_details",
+        "reporter_contact",
+        "reporter_relationship_to_incident"
+      ],
+      "source_file": "notes/26_child_grooming_or_exploitation_concern.txt"
+    },
+    {
+      "id": "wa_27_illegal_drug_sale_solicitation",
+      "platform": "whatsapp",
+      "display_name": "Illegal Drug Sale Solicitation",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Illegal Drug Sale Solicitation — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting an offer that appears to involve sale of an illegal or controlled substance. This account offered {{non_operational_description_of_offer}} on {{offer_date}} and stated {{relevant_claim_without_transaction_instructions}}. My basis for concern is {{specific_observed_content}}. I am not asserting that a sale took place or making an independent legal determination.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "non_operational_description_of_offer",
+        "offer_date",
+        "relevant_claim_without_transaction_instructions",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_observed_content"
+      ],
+      "source_file": "notes/27_illegal_drug_sale_solicitation.txt"
+    },
+    {
+      "id": "wa_28_weapons_sale_or_violent_crime_solicitation",
+      "platform": "whatsapp",
+      "display_name": "Weapons Sale or Violent Crime Solicitation",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Weapons Sale or Violent Crime Solicitation — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting a weapons offer or solicitation that raises a safety concern. This account communicated {{non_operational_description_of_offer_or_solicitation}} on {{incident_date}}. The specific threat or indication of prohibited activity was {{observed_safety_indicator}}. I am not attaching weapon-use instructions or claiming an unobserved transaction occurred.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_date",
+        "incident_dates_and_timezone",
+        "non_operational_description_of_offer_or_solicitation",
+        "observed_safety_indicator",
+        "reporter_contact",
+        "reporter_relationship_to_incident"
+      ],
+      "source_file": "notes/28_weapons_sale_or_violent_crime_solicitation.txt"
+    },
+    {
+      "id": "wa_29_incitement_to_violence_or_terrorist_recruitment",
+      "platform": "whatsapp",
+      "display_name": "Incitement to Violence or Terrorist Recruitment",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Incitement to Violence or Terrorist Recruitment — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting content that appears to encourage violence or recruit people for violent activity. This account sent {{brief_non_operational_description}} in {{chat_context}} on {{incident_date}}. The specific call to harm or recruitment conduct was {{specific_observed_call_or_conduct}}. My concern is based on that conduct, not a person’s religion, ethnicity or peaceful political views.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "brief_non_operational_description",
+        "chat_context",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_date",
+        "incident_dates_and_timezone",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_observed_call_or_conduct"
+      ],
+      "source_file": "notes/29_incitement_to_violence_or_terrorist_recruitment.txt"
+    },
+    {
+      "id": "wa_30_sale_of_stolen_data_or_credentials",
+      "platform": "whatsapp",
+      "display_name": "Sale of Stolen Data or Credentials",
+      "status": "draft_for_review",
+      "subject_template": "Request for review: Sale of Stolen Data or Credentials — {{account_number}}",
+      "body_template": "To WhatsApp’s review team,\n\nI am reporting an apparent offer of stolen personal data or account credentials. This account advertised {{data_type_without_actual_private_values}} on {{offer_date}} and claimed {{relevant_claim_of_source_or_access}}. The reason I suspect unauthorized access or disclosure is {{specific_basis}}. I am not including passwords, access tokens, private datasets or instructions for obtaining them.\n\nAccount concerned: {{account_number}}\nIncident dates and time zone: {{incident_dates_and_timezone}}\nSupporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}\nReporter’s relationship to the incident: {{reporter_relationship_to_incident}}\nReporter contact: {{reporter_contact}}\n\nPlease review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.\n",
+      "required_placeholders": [
+        "account_number",
+        "data_type_without_actual_private_values",
+        "evidence_summary_or_explicitly_unavailable",
+        "incident_dates_and_timezone",
+        "offer_date",
+        "relevant_claim_of_source_or_access",
+        "reporter_contact",
+        "reporter_relationship_to_incident",
+        "specific_basis"
+      ],
+      "source_file": "notes/30_sale_of_stolen_data_or_credentials.txt"
+    }
+  ],
+  "import_rules": {
+    "merge_into_one_case": true,
+    "require_case_specific_facts": true,
+    "block_unfilled_placeholders": true,
+    "review_before_submission": true,
+    "test_destination": "reporter_controlled_test_inbox_only",
+    "submission_count_per_case": 1
+  }
+}

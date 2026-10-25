@@ -1,0 +1,16 @@
+Sexual Blackmail
+DRAFT FOR REVIEW
+
+Subject: Request for review: Sexual Blackmail — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a sexual-blackmail concern. This account threatened {{non_graphic_description_of_disclosure_or_harm}} unless {{demand_made}}. The message was received on {{incident_date}}. The affected person is {{relationship_to_affected_person}}. I can provide non-explicit messages documenting the threat; intimate material is not included.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

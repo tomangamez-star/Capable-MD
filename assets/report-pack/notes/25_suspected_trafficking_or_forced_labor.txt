@@ -1,0 +1,16 @@
+Suspected Trafficking or Forced Labor
+DRAFT FOR REVIEW
+
+Subject: Request for review: Suspected Trafficking or Forced Labor — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting conduct that raises concerns about trafficking or forced labor. This account communicated {{non_graphic_description_of_offer_demand_or_control}} in {{context_and_date}}. The specific indicators of coercion, exploitation or restriction I observed were {{observed_indicators}}. My knowledge is limited to {{how_I_obtained_the_information}}; I cannot independently establish that trafficking occurred.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

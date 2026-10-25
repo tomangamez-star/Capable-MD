@@ -1,0 +1,16 @@
+Targeted Harassment or Cyberbullying
+DRAFT FOR REVIEW
+
+Subject: Request for review: Targeted Harassment or Cyberbullying — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting targeted harassment directed at {{target_description}}. On {{incident_dates}}, this account sent {{relevant_messages_or_conduct}}. The pattern or context making the contact abusive was {{specific_pattern_and_context}}. My relationship to the incident is {{how_I_witnessed_or_received_it}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

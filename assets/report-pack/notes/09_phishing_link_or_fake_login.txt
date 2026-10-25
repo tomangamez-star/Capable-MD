@@ -1,0 +1,16 @@
+Phishing Link or Fake Login
+DRAFT FOR REVIEW
+
+Subject: Request for review: Phishing Link or Fake Login — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a suspected phishing attempt. This account sent {{defanged_link_or_domain}} while pretending to be {{claimed_service_or_sender}} and asked me to {{requested_login_or_action}}. The message was misleading because {{specific_impersonation_or_domain_mismatch}}. My interaction with it was {{what_I_did_or_did_not_do}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

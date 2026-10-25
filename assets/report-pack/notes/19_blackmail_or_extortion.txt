@@ -1,0 +1,16 @@
+Blackmail or Extortion
+DRAFT FOR REVIEW
+
+Subject: Request for review: Blackmail or Extortion — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a suspected extortion attempt. This account demanded {{money_action_or_benefit_demanded}} and threatened {{threatened_consequence}} if I did not comply. The demand was made on {{demand_date}}, with {{deadline_or_none}}. The actual outcome so far is {{observed_outcome}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

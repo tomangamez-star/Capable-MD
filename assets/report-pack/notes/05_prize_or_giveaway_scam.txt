@@ -1,0 +1,16 @@
+Prize or Giveaway Scam
+DRAFT FOR REVIEW
+
+Subject: Request for review: Prize or Giveaway Scam — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a suspected prize or giveaway scam. This account claimed I had won {{claimed_prize}} through {{claimed_organizer}} and requested {{money_credentials_or_information_requested}}. The claim appears misleading because {{specific_inconsistency_or_verification_result}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

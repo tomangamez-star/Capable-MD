@@ -1,0 +1,16 @@
+Malicious File or App Distribution
+DRAFT FOR REVIEW
+
+Subject: Request for review: Malicious File or App Distribution — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting suspected distribution of a harmful file or app. This account sent or promoted {{filename_or_defanged_download_location}} as {{claimed_purpose}}. The observed security concern was {{security_warning_or_observed_behavior}}. My basis is {{observation_or_analysis_source}}; I have not assumed malware solely from an unfamiliar file. I am not attaching an executable payload.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

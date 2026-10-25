@@ -1,0 +1,16 @@
+Investment Scam
+DRAFT FOR REVIEW
+
+Subject: Request for review: Investment Scam — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a suspected investment scam. This account promoted {{investment_offer}} and claimed {{exact_return_or_guarantee_claim}}. It asked for {{payment_or_personal_information_requested}}. The specific inconsistency or deceptive conduct I observed was {{observed_inconsistency}}. Any loss I personally experienced was {{actual_loss_or_none}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

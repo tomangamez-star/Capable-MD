@@ -1,0 +1,16 @@
+Romance Scam
+DRAFT FOR REVIEW
+
+Subject: Request for review: Romance Scam — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting suspected financial deception connected to an online personal relationship. This account represented itself as {{claimed_identity_or_relationship}} and requested {{financial_request}} using {{stated_reason}}. The particular facts supporting my concern are {{observed_deception_or_inconsistencies}}. I distinguish these facts from assumptions about the person’s identity.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

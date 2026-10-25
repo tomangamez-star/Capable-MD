@@ -1,20 +1,16 @@
 services:
   - type: web
-    name: montai-sentinel
+    name: kana-notes
     runtime: python
-    plan: starter
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
     healthCheckPath: /healthz
-    disk:
-      name: sentinel-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.11
       - key: DATA_DIR
-        value: /var/data
+        value: ./data
       - key: SEND_MODE
         value: test
       - key: TELEGRAM_BOT_TOKEN
@@ -29,5 +25,11 @@ services:
         sync: false
       - key: GMAIL_SENDER
         sync: false
-      - key: TEST_EMAIL
+      - key: TEST_RECIPIENT_EMAIL
         sync: false
+      - key: TELEGRAM_REPORT_EMAIL
+        sync: false
+      - key: WHATSAPP_REPORT_EMAIL
+        sync: false
+      - key: GMAIL_EXTRA_ACCOUNTS_JSON
+        value: '[]'

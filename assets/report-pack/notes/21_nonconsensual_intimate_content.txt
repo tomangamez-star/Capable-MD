@@ -1,0 +1,16 @@
+Nonconsensual Intimate Content
+DRAFT FOR REVIEW
+
+Subject: Request for review: Nonconsensual Intimate Content — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting suspected sharing or threatened sharing of intimate content without consent. The account’s observed conduct was {{non_graphic_description_of_conduct}} on {{incident_date}}. My relationship to the affected person and basis for the consent concern are {{relationship_and_consent_basis}}. Available identifying context is {{message_reference_or_non_explicit_context}}. No intimate image or video is attached.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

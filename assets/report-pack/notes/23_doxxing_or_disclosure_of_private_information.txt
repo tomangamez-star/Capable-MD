@@ -1,0 +1,16 @@
+Doxxing or Disclosure of Private Information
+DRAFT FOR REVIEW
+
+Subject: Request for review: Doxxing or Disclosure of Private Information — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting disclosure or threatened disclosure of private information. This account {{observed_disclosure_or_threat}} involving {{type_of_information_without_repeating_sensitive_values}}. My basis for believing disclosure was unauthorized is {{authorization_context}}. The relevant message reference and date are {{message_reference_and_date}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

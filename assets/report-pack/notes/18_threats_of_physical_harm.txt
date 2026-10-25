@@ -1,0 +1,16 @@
+Threats of Physical Harm
+DRAFT FOR REVIEW
+
+Subject: Request for review: Threats of Physical Harm — {{account_number}}
+
+To WhatsApp’s review team,
+
+I am reporting a threat of physical harm. This account communicated {{exact_threat_or_accurate_description}} against {{threatened_person_or_group}} on {{threat_date}}. The relevant context and any stated time or location are {{threat_context}}. I cannot independently determine the sender’s capability or intent; the facts I observed are {{additional_observed_facts}}.
+
+Account concerned: {{account_number}}
+Incident dates and time zone: {{incident_dates_and_timezone}}
+Supporting evidence or references: {{evidence_summary_or_explicitly_unavailable}}
+Reporter’s relationship to the incident: {{reporter_relationship_to_incident}}
+Reporter contact: {{reporter_contact}}
+
+Please review the reported conduct and any supporting material and decide whether action is warranted under your rules. I have distinguished what I observed from what I suspect and have not independently verified any facts beyond those stated.

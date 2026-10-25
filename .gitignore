@@ -1,7 +1,8 @@
 .env
 .venv/
 __pycache__/
-data/
-evidence/*
-!evidence/README.md
 *.db
+*.db-*
+data/
+credentials*.json
+token*.json
