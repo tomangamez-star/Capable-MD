@@ -16,6 +16,7 @@ from aiohttp import web
 from dotenv import load_dotenv
 from core import Config, Notes, Store, GROUPS, target
 from gmail_mail import Gmail, AuthError
+from public_access import PublicAccess
 
 
 def button(text, data):
@@ -29,6 +30,7 @@ class Bot:
         self.notes = Notes()
         self.store = store or Store(self.cfg.data_dir / 'kana-notes.db')
         self.last_poll = 0
+        self.public_access = PublicAccess(self)
 
     async def tg(self, method, **body):
         async with self.http.post(f'https://api.telegram.org/bot{self.cfg.token}/{method}', json=body) as r:
@@ -144,6 +146,8 @@ class Bot:
                        '\n\nsubmitted = Gmail accepted the send request, not verified delivery or review. Check Gmail Sent, replies and bounce notices yourself. Uncertain sends are never automatically retried.')
 
     async def handle(self, update):
+        if await self.public_access.handle(update):
+            return
         cb = update.get('callback_query')
         msg = update.get('message') or (cb or {}).get('message')
         actor = (cb or update.get('message') or {}).get('from', {})
@@ -265,3 +269,4 @@ async def main():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s %(message)s')
     asyncio.run(main())
+
