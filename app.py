@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from core import Config, Notes, Store, GROUPS, target
 from gmail_mail import Gmail, AuthError
 from public_access import PublicAccess
+from content_panel import Portal
 
 
 def button(text, data):
@@ -31,6 +32,7 @@ class Bot:
         self.store = store or Store(self.cfg.data_dir / 'kana-notes.db')
         self.last_poll = 0
         self.public_access = PublicAccess(self)
+        self.portal = Portal(self)
 
     async def tg(self, method, **body):
         async with self.http.post(f'https://api.telegram.org/bot{self.cfg.token}/{method}', json=body) as r:
@@ -45,6 +47,9 @@ class Bot:
             await self.tg('sendMessage', chat_id=uid, text=text[i:i+3800], **kw)
 
     async def home(self, uid):
+        await self.portal.home(uid)
+
+    async def report_home(self, uid):
         await self.say(uid, 'KANA NOTES\nChoose a platform.\n\n'
                        f'Senders: {len(self.cfg.senders())}/10 configured\n'
                        'Every report is one of the 30 shipped notes, sent from all senders.\n\n'
@@ -251,7 +256,8 @@ class Bot:
 async def main():
     load_dotenv()
     bot = Bot()
-    app = web.Application()
+    app = web.Application(client_max_size=256 * 1024)
+    bot.portal.register(app)
     async def health(_):
         ready = time.time() - bot.last_poll < 180
         return web.json_response({'service':'KANA NOTES','ready':ready}, status=200 if ready else 503)
@@ -269,4 +275,5 @@ async def main():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s %(message)s')
     asyncio.run(main())
+
 

@@ -45,9 +45,12 @@ class PublicAccess:
         return await asyncio.gather(*(check(chat) for chat in REQUIRED_CHATS))
 
     async def gate(self, uid, states):
-        rows = [[{'text': name, 'url': url}] for name, _, url in REQUIRED_CHATS]
-        rows.append([btn('✅ Verify membership', 'membership:verify')])
-        lines = ['KANA NOTES', 'Join all four chats, then tap Verify membership.', '']
+        display = self.bot.portal.content.live()
+        rows = [[{'text': name, 'url': url, 'style': 'danger'}] for name, _, url in REQUIRED_CHATS]
+        verify = btn(display['verify_label'], 'membership:verify')
+        verify['style'] = 'success'
+        rows.append([verify])
+        lines = [display['heading'], display['join_prompt'], '']
         for chat, state in zip(REQUIRED_CHATS, states):
             label = {'joined': '✅ Joined', 'missing': '❌ Join required',
                      'unavailable': '⚠️ Could not verify'}[state]
@@ -70,6 +73,9 @@ class PublicAccess:
         self.db.commit()
 
     async def home(self, uid):
+        await self.bot.portal.home(uid)
+
+    async def report_home(self, uid):
         await self.bot.say(uid, 'KANA NOTES\nChoose a platform for your draft.\n\n'
                            'Drafts go to the bot owner for review. No email is sent by this public flow.\n'
                            '/start · /status · /cancel', [[btn('Telegram X', 'public:telegram'),
@@ -86,11 +92,12 @@ class PublicAccess:
         data = (cb or {}).get('data', '')
         # Acknowledge once here; owner callbacks continuing to the old handler
         # are acknowledged there instead.
-        if cb and (not owner or data == 'membership:verify'):
+        portal_callback = data.startswith(('portal:', 'portalsend:', 'portalcancel:'))
+        if cb and (not owner or data == 'membership:verify' or portal_callback):
             await self.bot.tg('answerCallbackQuery', callback_query_id=cb['id'])
         states = await self.membership(uid)
         if any(state != 'joined' for state in states):
-            if cb and owner and data != 'membership:verify':
+            if cb and owner and data != 'membership:verify' and not portal_callback:
                 await self.bot.tg('answerCallbackQuery', callback_query_id=cb['id'])
             await self.gate(uid, states)
             return True
@@ -100,6 +107,8 @@ class PublicAccess:
             return True
         text = msg.get('text', '').strip() if not cb else ''
         cmd = text.split(' ')[0].split('@')[0].lower()
+        if await self.bot.portal.telegram(uid, text, data, owner):
+            return True
         if owner:
             if cmd == '/draft':
                 ident = text.partition(' ')[2].strip()
@@ -184,3 +193,4 @@ class PublicAccess:
                 f"Platform: {draft['platform']}\nAccount: {draft['target']}\n"
                 f"Topic: {draft['topic']}\n\nUser-provided description (unverified):\n"
                 f"{draft['details']}\n\nOwner review only; no email sent.")
+
